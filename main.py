@@ -48,7 +48,7 @@ while running:
                     gameover_screen(screen, len_side_screen, count_cells, cur_len_snake)
                 else:
                     # menu_index >= 3
-                    start_level(utility.menu.menu_index - 1)
+                    start_level(utility.menu.menu_index - 3)  # menu_index = 2 == level = 1
 
     # background.draw(screen)
     pg.display.flip()
