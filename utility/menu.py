@@ -8,17 +8,23 @@ import os
 import pygame as pg
 from utility.field import Board
 
-"""
-Как возвращать аргументы через функцию update у sprite ?
-"""
+menu_index = 0
+
+
 def exit(*args):
-    return -1
+    global menu_index
+    menu_index = -1
+    print(-1)
+
 
 def main_menu(*args):
-    return 0
+    global menu_index
+    menu_index = 0
+
 
 def start(*args):
-    return 1
+    global menu_index
+    menu_index = 1
 
 
 def load_image(name, resize_ch=1):

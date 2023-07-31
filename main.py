@@ -7,9 +7,9 @@ import pygame as pg
 import utility.menu
 from utility.field import Board
 from utility.menu import start_screen, level_screen, gameover_screen
-from utility.menu import list_groups_buttons
+from utility.level_system import start_level
+import utility.menu
 import configparser
-
 
 config = configparser.ConfigParser()
 config.read('config.cfg')
@@ -20,11 +20,9 @@ pg.init()
 screen = pg.display.set_mode((len_side_screen, len_side_screen))
 
 running = True
-menu_index = 0
 
 pg.display.set_caption('Меню')
 start_screen(screen, len_side_screen, count_cells)
-
 
 cur_len_snake = 0
 
@@ -34,20 +32,23 @@ while running:
         if event.type == pg.QUIT:
             running = False
         if event.type == pg.MOUSEBUTTONDOWN:
-            list_groups_buttons[menu_index].update(pg.mouse.get_pos())
-            if menu_index == -1:
-                running = False
-                break
-            screen.fill('black')
-            if menu_index == 0:
-                pg.display.set_caption('Меню')
-                start_screen(screen, len_side_screen, count_cells)
-            elif menu_index == 1:
-                pg.display.set_caption('Выбор уровня')
-                level_screen(screen, len_side_screen, count_cells)
-            elif menu_index == 2:
-                gameover_screen(screen, len_side_screen, count_cells, cur_len_snake)
-
+            if utility.menu.menu_index in range(0, 2):
+                utility.menu.list_groups_buttons[utility.menu.menu_index].update(pg.mouse.get_pos())
+                if utility.menu.menu_index == -1:
+                    running = False
+                    break
+                screen.fill('black')
+                if utility.menu.menu_index == 0:
+                    pg.display.set_caption('Меню')
+                    start_screen(screen, len_side_screen, count_cells)
+                elif utility.menu.menu_index == 1:
+                    pg.display.set_caption('Выбор уровня')
+                    level_screen(screen, len_side_screen, count_cells)
+                elif utility.menu.menu_index == 2:
+                    gameover_screen(screen, len_side_screen, count_cells, cur_len_snake)
+                else:
+                    # menu_index >= 3
+                    start_level(utility.menu.menu_index - 1)
 
     # background.draw(screen)
     pg.display.flip()
