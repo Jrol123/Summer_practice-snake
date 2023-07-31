@@ -19,5 +19,5 @@ def load_level(filename: str):
     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
 
-def start_level():
+def start_level(*args):
     pass
