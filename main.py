@@ -24,7 +24,7 @@ running = True
 pg.display.set_caption('Меню')
 start_screen(screen, len_side_screen, count_cells)
 
-cur_len_snake = 0
+cur_len_snake = 2  # Пользователю будет показан 0
 
 while running:
     pos = pg.mouse.get_pos()
