@@ -10,23 +10,6 @@ from utility.field import Board
 
 menu_index = 0
 
-
-def exit():
-    global menu_index
-    menu_index = -1
-    print(-1)
-
-
-def main_menu():
-    global menu_index
-    menu_index = 0
-
-
-def start():
-    global menu_index
-    menu_index = 1
-
-
 def load_image(name, resize_ch=1):
     fullname = os.path.join('textures', name)
     try:
@@ -43,22 +26,26 @@ def load_image(name, resize_ch=1):
 
 
 class Button(pygame.sprite.Sprite):
-    def __init__(self, x: int, y: int, image: pygame.Surface, action, *group: pygame.sprite.Group):
+    def __init__(self, x: int, y: int, image: pygame.Surface, level: int, *group: pygame.sprite.Group, is_game_level: bool = False):
         super().__init__(*group)
-
-        self.action = action
 
         self.image = image
         image_size = image.get_size()
         x -= image_size[0] // 2
         y -= image_size[1] // 2
         self.rect = self.image.get_rect()
+        self.level = level
+        self.is_game_level = is_game_level
 
         self.rect.topleft = (x, y)
 
-    def update(self, mouse_pos) -> int | None:
+    def update(self, mouse_pos) -> None:
         if self.rect.collidepoint(mouse_pos):
-            return self.action()
+            self.set_level()
+
+    def set_level(self):
+        global menu_index
+        menu_index = self.level + int(self.is_game_level) * 3
 
 
 def background_render(screen: pygame.Surface, len_side_screen: int, count_cells: int) -> None:
@@ -102,7 +89,8 @@ def level_screen(screen: pygame.Surface, len_side_screen: int, count_cells: int)
 
 
 def gameover_screen(screen: pygame.Surface, len_side_screen: int, count_cells: int, len_snake: int) -> None:
-    pass
+    background_render(screen, len_side_screen, count_cells)
+    gameover_screen_buttons.draw(screen)
 
 
 config = configparser.ConfigParser()
@@ -110,12 +98,18 @@ config.read('config.cfg')
 len_side_screen = int(config['screen']['len_side'])
 count_cells = int(config['screen']['count_cells'])
 
+level_buttons_resize = 3
+
 start_screen_buttons = pg.sprite.Group()
-level_screen_buttons = pg.sprite.Group()
-gameover_screen_buttons = pg.sprite.Group()
 exit_button = Button(len_side_screen // 2, len_side_screen // 2 + ((len_side_screen // 2) // 3) * 2,
-                     load_image("end.png", 7), exit, start_screen_buttons)
-start_button = Button(len_side_screen // 2, len_side_screen // 2, load_image("start.png", 7), start,
+                     load_image("end.png", 7), -1, start_screen_buttons)
+start_button = Button(len_side_screen // 2, len_side_screen // 2, load_image("start.png", 7), 1,
                       start_screen_buttons)
+
+level_screen_buttons = pg.sprite.Group()
+level_1_button = Button(len_side_screen // 2 - (len_side_screen // 2) // 3 * 2, len_side_screen // 2,
+                        load_image("1.png", level_buttons_resize), 1, level_screen_buttons, is_game_level=True)
+
+gameover_screen_buttons = pg.sprite.Group()
 
 list_groups_buttons = [start_screen_buttons, level_screen_buttons, gameover_screen_buttons]
