@@ -10,6 +10,7 @@ from utility.field import Board
 
 menu_index = 0
 
+
 def load_image(name, resize_ch=1):
     fullname = os.path.join('textures', name)
     try:
@@ -26,7 +27,8 @@ def load_image(name, resize_ch=1):
 
 
 class Button(pygame.sprite.Sprite):
-    def __init__(self, x: int, y: int, image: pygame.Surface, level: int, *group: pygame.sprite.Group, is_game_level: bool = False):
+    def __init__(self, x: int, y: int, image: pygame.Surface, level: int, *group: pygame.sprite.Group,
+                 is_game_level: bool = False):
         super().__init__(*group)
 
         self.image = image
