@@ -72,39 +72,39 @@ class Board:
                 # Последний аргумент отвечает за заполнение.
 
 
-class ActiveBoard(Board):
-    def __int__(self, length: int, count_cells: int, wall_map: list[list[bool]], exit_pos: tuple[int, int]):
-        """
-        Инициализация игрового поля.
-
-        :param length: Длина стороны игрового поля.
-        :param count_cells: Количество клеток.
-        :param wall_map:
-        :param exit_pos: Координаты клетки, рядом с которой будет выход.
-
-        """
-        super().__init__(length, count_cells)
-        self.wall_map = wall_map
-        self.exit_pos = exit_pos
-
-    def draw(self, screen: pg.Surface,
-             colors: tuple[pg.Color | tuple[int, int, int], pg.Color | tuple[int, int, int]]
-             = ((79, 255, 77), (60, 191, 57))) -> None:
-        """
-        Отрисовывание игрового поля на заданном экране.
-
-        :param screen: Экран, на котором будет выведено игровое поле.
-        :type screen: pg.Surface
-        :param colors: Цвета, использующиеся для отрисовки квадратов доски.
-        :type colors: tuple[pg.Color | tuple[int, int, int], pg.Color | tuple[int, int, int]]
-
-        """
-        """
-        Временный метод
-        """
-        for index_side, side in enumerate(self.cell_begin_coords):
-            for index_cell, coord in enumerate(side):
-                x, y = coord
-                color = colors[(index_side + index_cell) % 2]
-                pg.draw.rect(screen, color, (x, y, self.cell_len, self.cell_len), 0)
-                # Последний аргумент отвечает за заполнение.
+# class ActiveBoard(Board):
+#     def __int__(self, length: int, count_cells: int, wall_map: list[list[bool]], exit_pos: tuple[int, int]):
+#         """
+#         Инициализация игрового поля.
+#
+#         :param length: Длина стороны игрового поля.
+#         :param count_cells: Количество клеток.
+#         :param wall_map:
+#         :param exit_pos: Координаты клетки, рядом с которой будет выход.
+#
+#         """
+#         super().__init__(length, count_cells)
+#         self.wall_map = wall_map
+#         self.exit_pos = exit_pos
+#
+#     def draw(self, screen: pg.Surface,
+#              colors: tuple[pg.Color | tuple[int, int, int], pg.Color | tuple[int, int, int]]
+#              = ((79, 255, 77), (60, 191, 57))) -> None:
+#         """
+#         Отрисовывание игрового поля на заданном экране.
+#
+#         :param screen: Экран, на котором будет выведено игровое поле.
+#         :type screen: pg.Surface
+#         :param colors: Цвета, использующиеся для отрисовки квадратов доски.
+#         :type colors: tuple[pg.Color | tuple[int, int, int], pg.Color | tuple[int, int, int]]
+#
+#         """
+#         """
+#         Временный метод
+#         """
+#         for index_side, side in enumerate(self.cell_begin_coords):
+#             for index_cell, coord in enumerate(side):
+#                 x, y = coord
+#                 color = colors[(index_side + index_cell) % 2]
+#                 pg.draw.rect(screen, color, (x, y, self.cell_len, self.cell_len), 0)
+#                 # Последний аргумент отвечает за заполнение.
