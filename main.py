@@ -2,7 +2,7 @@
 Главное пространство для запуска
 """
 import pygame as pg
-from utility.background import Board
+from utility.field import Board, ActiveBoard
 from utility.menu import *
 import configparser
 
@@ -25,5 +25,14 @@ while running:
             running = False
     background.draw(screen)
     pg.display.flip()
-    # pg.color.Color('green')
 
+"""
+Рандомную генерацию фруктов можно проводить следующим образом:
+1. Сохранять индексы свободных ячеек в отдельный массив.
+2. Брать одну / две ячейки на фрукт / фрукт + ключ.
+3. Вставлять их.
+"""
+
+"""
+Стены будут запекаться сразу в ActiveBoard
+"""
