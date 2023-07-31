@@ -7,7 +7,7 @@ import pygame as pg
 
 
 def load_level(filename: str):
-    filename = "data/" + filename
+    filename = "level_/" + filename
     # читаем уровень, убирая символы перевода строки
     with open(filename, 'r') as mapFile:
         level_map = [line.strip() for line in mapFile]
@@ -17,3 +17,7 @@ def load_level(filename: str):
 
     # дополняем каждую строку пустыми клетками ('.')
     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
+
+
+def start_level():
+    pass

@@ -11,18 +11,18 @@ from utility.field import Board
 menu_index = 0
 
 
-def exit(*args):
+def exit():
     global menu_index
     menu_index = -1
     print(-1)
 
 
-def main_menu(*args):
+def main_menu():
     global menu_index
     menu_index = 0
 
 
-def start(*args):
+def start():
     global menu_index
     menu_index = 1
 
@@ -56,9 +56,9 @@ class Button(pygame.sprite.Sprite):
 
         self.rect.topleft = (x, y)
 
-    def update(self, mouse_pos, *args) -> int | None:
+    def update(self, mouse_pos) -> int | None:
         if self.rect.collidepoint(mouse_pos):
-            return self.action(args)
+            return self.action()
 
 
 def background_render(screen: pygame.Surface, len_side_screen: int, count_cells: int) -> None:
@@ -79,7 +79,7 @@ def start_screen(screen: pygame.Surface, len_side_screen: int, count_cells: int)
     font = pygame.font.Font(None, 100)
     text_coord = 50
     for line in intro_text:
-        string_rendered = font.render(line, 1, pygame.Color('violet'))
+        string_rendered = font.render(line, 1, pygame.Color('black'))
         intro_rect = string_rendered.get_rect()
         text_coord += 10
         intro_rect.top = text_coord
