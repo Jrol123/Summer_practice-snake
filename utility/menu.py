@@ -12,7 +12,7 @@ menu_index = 0
 
 
 def load_image(name, resize_ch=1):
-    fullname = os.path.join('textures', name)
+    fullname = os.path.join('textures', name + ".png")
     try:
         image = pg.image.load(fullname)
     except pg.error as message:
@@ -93,6 +93,9 @@ def level_screen(screen: pygame.Surface, len_side_screen: int, count_cells: int)
 def gameover_screen(screen: pygame.Surface, len_side_screen: int, count_cells: int, len_snake: int) -> None:
     background_render(screen, len_side_screen, count_cells)
     gameover_screen_buttons.draw(screen)
+    text = f'length of a Snake: {len_snake}'
+    font = pygame.font.Font(None, 100)
+    text_coord = 50
 
 
 config = configparser.ConfigParser()
@@ -104,13 +107,17 @@ level_buttons_resize = 3
 
 start_screen_buttons = pg.sprite.Group()
 exit_button = Button(len_side_screen // 2, len_side_screen // 2 + ((len_side_screen // 2) // 3) * 2,
-                     load_image("end.png", 7), -1, start_screen_buttons)
-start_button = Button(len_side_screen // 2, len_side_screen // 2, load_image("start.png", 7), 1,
+                     load_image("end", 7), -1, start_screen_buttons)
+start_button = Button(len_side_screen // 2, len_side_screen // 2, load_image("start", 7), 1,
                       start_screen_buttons)
 
 level_screen_buttons = pg.sprite.Group()
 level_1_button = Button(len_side_screen // 2 - (len_side_screen // 2) // 3 * 2, len_side_screen // 2,
-                        load_image("1.png", level_buttons_resize), 1, level_screen_buttons, is_game_level=True)
+                        load_image("1", level_buttons_resize), 1, level_screen_buttons, is_game_level=True)
+level_2_button = Button(len_side_screen // 2 - (len_side_screen // 2) // 3 * 1, len_side_screen // 2,
+                        load_image("2", level_buttons_resize), 2, level_screen_buttons, is_game_level=True)
+back_button = Button(len_side_screen // 2, len_side_screen // 2 + ((len_side_screen // 2) // 3) * 2,
+                     load_image("back", 7), 0, level_screen_buttons)
 
 gameover_screen_buttons = pg.sprite.Group()
 
