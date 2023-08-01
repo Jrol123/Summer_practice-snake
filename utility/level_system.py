@@ -62,7 +62,8 @@ def start_level(screen, level):
                     tail_snake = coord_cell
                 case 'e':
                     exit_pos = coord_cell
-    Game_modules.game_module.Game().start(screen, empty_space, walls_pos, head_snake, tail_snake, exit_pos)
+    game = Game_modules.game_module.Game(screen, empty_space, walls_pos, head_snake, tail_snake, exit_pos)
+    game.game_loop()
     # Далее тут будет распознавание начального положения змеи из координат головы и хвоста.
 
 
