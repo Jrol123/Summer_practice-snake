@@ -47,8 +47,9 @@ while running:
                 elif utility.menu.menu_index == 2:
                     gameover_screen(screen, len_side_screen, count_cells, cur_len_snake)
                 else:
+                    pg.display.set_caption(f'Уровень {utility.menu.menu_index - 3}')
                     # menu_index >= 3
-                    start_level(utility.menu.menu_index - 3)  # menu_index = 2 == level = 1
+                    start_level(screen, utility.menu.menu_index - 3)  # menu_index = 2 == level = 1
 
     # background.draw(screen)
     pg.display.flip()
