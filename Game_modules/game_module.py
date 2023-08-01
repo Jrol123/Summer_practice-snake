@@ -2,6 +2,7 @@
 Empty.
 """
 import configparser
+from abc import abstractmethod
 import pygame as pg
 from pygame import Vector2
 import utility.level_system
@@ -12,11 +13,13 @@ config = configparser.ConfigParser()
 config.read('config.cfg')
 len_side_screen = int(config['screen']['len_side'])
 count_cells = int(config['screen']['count_cells'])
+speed_movement = int(config['game']['speed'])
 len_cell = len_side_screen // count_cells
 
 tile_images = {
     'wall': utility.menu.load_image('wall-block(r)', 2),
-    'apple': utility.menu.load_image('apple', 2)
+    'apple': utility.menu.load_image('apple', 2),
+    'cage': utility.menu.load_image('cage', 2)
 }
 
 
@@ -40,13 +43,15 @@ class Wall(pg.sprite.Sprite):
 
 
 class Fruit(pg.sprite.Sprite):
-    def __init__(self, group):
+    def __init__(self, counter_fruit, group):
         super().__init__(group)
-        self.x = random.randint(0, len(Game.empty_space) - 1)
-        self.y = random.randint(0, len(Game.empty_space) - 1)
+        self.counter_fruit = counter_fruit % 5
+        self.x = random.randint(0, len(Game().empty_space) - 1)
+        self.y = random.randint(0, len(Game().empty_space) - 1)
         # Исключить координаты змеи
+
         self.rect = pg.Rect(self.x, self.y, len_cell, len_cell)
-        self.is_special = not bool(Game.counter_fruit % 5)
+        self.is_special = False
 
     # def update(self):
     #     """
@@ -85,8 +90,12 @@ class Fruit(pg.sprite.Sprite):
 
 4. Как отрисовывать змею?
 С учётом того, что она движется...
+Следует ли создать класс под тело змеи и просто отрисовывать спрайтами, или же работать через blit ?
 
-5. Как учитывать то, что хвост должен оставаться на месте?
+5. Как отрисовывать фрукты?
+Если учесть, что фрукты не могут появляться прямо на змее или перед змеёй
+
+6. Как учитывать то, что хвост должен оставаться на месте?
 Всегда хранить его предыдущие координаты и в случае чего откатывать хвост на них, чтобы при продвижении далее хвост снова подвинулся на своё исходное место?
 
 """
@@ -102,8 +111,9 @@ class Snake:
 
     """
 
-    def __init__(self, head_dir):
-        self.direction = Vector2(*head_dir)  # Заглушка
+    def __init__(self, head_dir, pos_tail):
+        self.cur_direction = Vector2(*head_dir)
+        self.body_direction = self.cur_direction.copy()
         self.head = utility.menu.load_image('head_right')
 
         self.head_up = utility.menu.load_image('head_up')
@@ -111,7 +121,7 @@ class Snake:
         self.head_right = utility.menu.load_image('head_right')
         self.head_left = utility.menu.load_image('head_left')
 
-        self.body = [Vector2(1, 10)]  # Заглушка
+        self.body = [Vector2(*pos_tail)]
 
         self.tail_up = utility.menu.load_image('tail_up')
         self.tail_down = utility.menu.load_image('tail_down')
@@ -126,35 +136,55 @@ class Snake:
         self.body_br = utility.menu.load_image('body_br')
         self.body_bl = utility.menu.load_image('body_bl')
 
+        self.prev_pos = Vector2(pos_tail[0] - 1, pos_tail[1] - 1)
+        """Информация о предыдущей последней клетке для корректного отрисовывания хвоста"""
+
+    def add_block_to_snake(self):
+        pass
+
     def draw_head(self):
-        if self.direction == (1, 0):
+        if self.cur_direction == (1, 0):
             self.head = self.head_right
-        if self.direction == (-1, 0):
+        if self.cur_direction == (-1, 0):
             self.head = self.head_left
-        if self.direction == (0, -1):
+        if self.cur_direction == (0, -1):
             self.head = self.head_up
-        if self.direction == (0, 1):
+        if self.cur_direction == (0, 1):
             self.head = self.head_down
+
+    def move_snake(self):
+        body_double = self.body[:-1]
+        body_double.insert(0, body_double[0] + self.cur_direction)
+        self.body_direction = self.cur_direction
+        self.body = body_double[:]
+
+    def set_direction(self, direction):
+        if self.body_direction[0] == -direction[0] and self.body_direction[1] == direction[1]:
+            return
+        self.cur_direction = direction
 
 
 class Game:
-    counter_fruit = 1
-
+    @abstractmethod
     def start(self, screen: pg.Surface, empty_space, walls, head_snake, tail_snake, exit_pos):
         """
 
-        :param screen:
-        :param empty_space:
-        :param walls:
-        :param head_snake:
-        :param tail_snake:
-        :param exit_pos:
+        :param screen: Экран
+        :param empty_space: Координаты пустых квадратов
+        :param walls: Координаты стен
+        :param head_snake: Координаты головы змеи
+        :param tail_snake: Координаты хвоста змеи
+        :param exit_pos: Координаты точки, врезавшись в стену рядом с которой уровень закончится (НА БУДУЩЕЕ)
 
         """
-        self.counter_fruit = 1
+        self.exit_pos = exit_pos
         self.screen = screen
         self.empty_space = empty_space
+        self.fruits_group = pg.sprite.Group()
+        self.fruit = Fruit(1, self.fruits_group)
+
         self.walls_group = pg.sprite.Group()
+
         for wall_coords in walls:
             Wall(*wall_coords, self.walls_group)
 
@@ -173,7 +203,37 @@ class Game:
             else:
                 snake_dir = Vector2(0, -1)
 
+        self.snake = Snake(snake_dir, tail_snake)
+
+        self.game_loop()
+
+    def game_loop(self):
+        move_snake_event = pg.USEREVENT
+
         self.draw_level()
+        pg.time.set_timer(move_snake_event, speed_movement)  # скорость обработки движения змеи
+
+        running = True
+        while running:
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    running = False
+                    utility.menu.menu_index = -1
+                if event.type == move_snake_event:
+                    self.snake.update()  # Обновление положения змеи
+                if event.type == pg.KEYDOWN:
+                    # Попытка обновления направления змеи
+                    if event.key == pg.K_UP:
+                        self.snake.set_direction(Vector2(0, -1))
+                    elif event.key == pg.K_DOWN:
+                        self.snake.set_direction(Vector2(0, 1))
+                    elif event.key == pg.K_LEFT:
+                        self.snake.set_direction(Vector2(-1, 0))
+                    elif event.key == pg.K_RIGHT:
+                        self.snake.set_direction(Vector2(1, 0))
+                self.draw_level()
+                self.snake.draw(self.screen)
+                self.fruits_group.draw(self.screen)
 
     def draw_level(self):
         self.screen.fill('black')
@@ -182,4 +242,4 @@ class Game:
         pg.display.flip()
 
     def gameover(self):
-        utility.menu.gameover_screen(self.screen, len_side_screen, count_cells, len(Snake.body) - 1)
+        utility.menu.gameover_screen(self.screen, len_side_screen, count_cells, len(self.snake.body) - 1)
