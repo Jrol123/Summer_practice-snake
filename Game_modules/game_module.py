@@ -42,6 +42,12 @@ class Wall(pg.sprite.Sprite):
 Ключ будет лежать в одной группе с Fruit
 """
 
+"""
+Для определения грамотного положения фрукта + ключа есть 3 стула:
+1. Двойной for
+2. Двумерный массив empty_space (Нужно переделать чтение уровня)
+3. Через random
+"""
 
 class Fruit(pg.sprite.Sprite):
     def __init__(self, counter_fruit, empty_space, group):
@@ -55,7 +61,7 @@ class Fruit(pg.sprite.Sprite):
         self.image = tile_images['apple']
         self.rect = pg.Rect(self.x, self.y, len_cell, len_cell)
         self.is_special = False
-        """Является ли фрукт - особенным (под клеткой)"""
+        """Является ли фрукт — особенным (под клеткой)"""
 
     def check_collision(self, snake) -> int:
         """
@@ -130,9 +136,8 @@ class SnakeBody(pg.sprite.Sprite):
         self.dir = dir
 
     def update(self, x: int, y: int, dir: tuple[int, int], image=None) -> None:
-        if image != None:
-            self.image = image
-            self.rect = self.image.get_rect()
+        self.image = image
+        self.rect = self.image.get_rect()
         self.dir = dir
         self.rect.topleft = (x, y)
 
@@ -193,12 +198,14 @@ class Snake:
 
         self.prev_pos = (tail_pos[0] - 1, tail_pos[1] - 1)
         """Информация о предыдущей последней клетке для корректного отрисовывания хвоста"""
+        self.prev_dir = head_dir
 
         self.len_queue = 0
         """Длина очереди на рост"""
 
     def add_block_to_snake(self):
-        pass
+        SnakeBody(*self.prev_pos,
+                  self.body_images[self.prev_dir], self.prev_dir, self.body)
 
     def image_head(self) -> pg.Surface:
         return self.head_images[self.cur_direction[0], self.cur_direction[1]]
@@ -223,6 +230,7 @@ class Snake:
             self.add_block()
 
         prev_block_pos = self.body.sprites()[0].rect.topleft
+        prev_block_dir = self.body.sprites()[0].dir
 
         for index, block in enumerate(self.body):
             if index == 0:
@@ -242,11 +250,14 @@ class Snake:
                 continue
             elif index == len(self.body) - 1:
                 # Хвост
-                prev_block_dir = self.body.sprites()[index - 1].dir
+                # prev_block_dir = self.body.sprites()[index - 1].dir
+                self.prev_pos = block.rect.topleft
+                self.prev_dir = block.dir
                 block.update(*prev_block_pos, prev_block_dir, self.tail_images[prev_block_dir])
                 continue
 
-            prev_block_dir = self.body.sprites()[index - 1].dir
+            # Тело
+            # prev_block_dir = self.body.sprites()[index - 1].dir
             to_set_pos = prev_block_pos
             prev_block_pos = block.rect.topleft
             block.update(*to_set_pos, prev_block_dir, self.body_images[block.dir, prev_block_dir])
@@ -324,8 +335,8 @@ class Game:
         self.exit_pos = exit_pos
         self.screen = screen
         self.empty_space = empty_space
-        self.fruits_group = pg.sprite.Group()
-        self.fruit = Fruit(1, self.empty_space, self.fruits_group)
+        self.item_group = pg.sprite.Group()
+        self.fruit = Fruit(1, self.empty_space, self.item_group)
 
         self.walls_group = pg.sprite.Group()
 
@@ -366,7 +377,7 @@ class Game:
                     running = False
                     continue
                 if event.type == move_snake_event:
-                    running = self.snake.update(self.fruits_group, self.walls_group)  # Обновление положения змеи
+                    running = self.snake.update(self.item_group, self.walls_group)  # Обновление положения змеи
                     if not running:
                         utility.menu.menu_index = 2
                         break
@@ -398,5 +409,5 @@ class Game:
         self.walls_group.draw(self.screen)
         self.snake.draw(self.screen)
         pg.display.flip()
-        # self.fruits_group.draw(self.screen)
+        # self.item_group.draw(self.screen)
         # pg.display.flip()
