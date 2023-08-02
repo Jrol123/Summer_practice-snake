@@ -24,19 +24,18 @@ running = True
 pg.display.set_caption('Меню')
 start_screen(screen, len_side_screen, count_cells)
 
-cur_len_snake = 2  # Пользователю будет показан 0
+len_snake = 0  # Пользователю будет показан 0
 
 while running:
     pos = pg.mouse.get_pos()
     for event in pg.event.get():
-        if event.type == pg.QUIT:
+        if event.type == pg.QUIT or utility.menu.menu_index == -1:
             running = False
+            break
         if event.type == pg.MOUSEBUTTONDOWN:
-            if utility.menu.menu_index in range(0, 2):
+            if utility.menu.menu_index in range(0, 2 + 1):
                 utility.menu.list_groups_buttons[utility.menu.menu_index].update(pg.mouse.get_pos())
-                if utility.menu.menu_index == -1:
-                    running = False
-                    break
+
                 screen.fill('black')
                 if utility.menu.menu_index == 0:
                     pg.display.set_caption('Меню')
@@ -45,11 +44,13 @@ while running:
                     pg.display.set_caption('Выбор уровня')
                     level_screen(screen, len_side_screen, count_cells)
                 elif utility.menu.menu_index == 2:
-                    gameover_screen(screen, utility.menu.menu_index - 3, len_side_screen, count_cells, cur_len_snake)
+                    pg.display.set_caption(f'Игра окончена!')
+                    gameover_screen(screen, utility.menu.menu_index - 3, len_side_screen, count_cells, len_snake)
                 else:
                     pg.display.set_caption(f'Уровень {utility.menu.menu_index - 3}')
                     # menu_index >= 3
-                    start_level(screen, utility.menu.menu_index - 3)  # menu_index = 2 == level = 1
+                    len_snake = start_level(screen, utility.menu.menu_index - 3)  # menu_index = 2 == level = 1
+                    pg.event.post(pg.event.Event(pg.MOUSEBUTTONDOWN))
 
     # background.draw(screen)
     pg.display.flip()

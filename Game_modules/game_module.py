@@ -350,7 +350,7 @@ class Game:
         self.snake = Snake(snake_dir, head_snake, tail_snake)
 
     """Не активируется gameover_screen"""
-    def game_loop(self):
+    def game_loop(self) -> int:
         move_snake_event = pg.USEREVENT + 1
         gameover_event = pg.USEREVENT + 2
 
@@ -391,6 +391,7 @@ class Game:
                     if state:
                         pg.event.post(pg.event.Event(move_snake_event))
                         pg.time.set_timer(move_snake_event, speed_movement)
+        return len(self.snake.body) - 2
 
     def draw_level(self):
         self.screen.fill('black')

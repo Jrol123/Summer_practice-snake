@@ -38,7 +38,7 @@ def load_level(filename: str) -> list[list[str]]:
 """
 
 
-def start_level(screen, level):
+def start_level(screen, level) -> int:
     empty_space = []
     walls_pos = []
     head_snake = ()
@@ -63,7 +63,7 @@ def start_level(screen, level):
                 case 'e':
                     exit_pos = coord_cell
     game = Game_modules.game_module.Game(screen, empty_space, walls_pos, head_snake, tail_snake, exit_pos, level)
-    game.game_loop()
+    return game.game_loop()
     # Далее тут будет распознавание начального положения змеи из координат головы и хвоста.
 
 
