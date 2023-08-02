@@ -16,7 +16,7 @@ len_cell = len_side_screen // count_cells
 
 tile_images = {
     'wall': utility.menu.load_image('wall-block(r)', 2),
-    'apple': utility.menu.load_image('apple', 2),
+    'apple': utility.menu.load_image('apple', 1.6),
     'cage': utility.menu.load_image('cage', 2)
 }
 
@@ -47,19 +47,30 @@ class Wall(pg.sprite.Sprite):
 1. Двойной for
 2. Двумерный массив empty_space (Нужно переделать чтение уровня)
 3. Через random
+
+Ниже будет реализована версия через двойной for
 """
 
+
+class Key(pg.sprite.Sprite):
+    def __init__(self, empty_space: list[int], group: pg.sprite.Group):
+        pass
+
+
 class Fruit(pg.sprite.Sprite):
-    def __init__(self, counter_fruit, empty_space, group):
+    def __init__(self, counter_fruit: int, snake, empty_space: list[int], group: pg.sprite.Group):
         super().__init__(group)
         self.counter_fruit = counter_fruit % 5
+        self.empty_space = empty_space
+        cur_space = self.free_coords(snake, empty_space)
         # Сделать двойной цикл, где для каждого snake_obj проверяется empty_space. Если есть коллизия — удаляется
-        self.x, self.y = empty_space[random.randint(0, len(empty_space) - 1)]
         # Исключить координаты змеи.
         # Исключить координату перед змеёй.
 
         self.image = tile_images['apple']
-        self.rect = pg.Rect(self.x, self.y, len_cell, len_cell)
+        self.rect = self.image.get_rect()
+        self.rect.topleft = empty_space[random.randint(0, len(cur_space) - 1)]
+
         self.is_special = False
         """Является ли фрукт — особенным (под клеткой)"""
 
@@ -74,12 +85,20 @@ class Fruit(pg.sprite.Sprite):
         if not self.is_special or self.is_special and snake.is_holding_key:
             self.update()
             snake.len_queue += 1 + int(self.is_special)
+            print('fruit_grab')
             return 1
         return -1
 
+    def free_coords(self, snake, space):
+        cur_space = space.copy()
+        for body in snake.body:
+            if body.rect.topleft in cur_space:
+                cur_space.remove(body.rect.topleft)
+        return cur_space
+
     # def update(self, snake):
     #     """
-    #     Как можно связать коллизию с анимацией?
+    #     В этом update фрукт будет менять своё положение +, при необходимости, создавать ключ
     #
     #     """
     #     # if Snake.head.pos == (self.x, self.y): # Просто сравнение
@@ -179,7 +198,7 @@ class Snake:
             ((0, 1), (0, 1)): utility.menu.load_image('body_vertical', 1.6),
             ((0, -1), (0, -1)): utility.menu.load_image('body_vertical', 1.6),
             ((0, -1), (1, 0)): utility.menu.load_image('body_br', 1.6),
-            ((-1, 0), (1, 0)): utility.menu.load_image('body_br', 1.6),
+            ((-1, 0), (0, 1)): utility.menu.load_image('body_br', 1.6),
             ((1, 0), (0, 1)): utility.menu.load_image('body_bl', 1.6),
             ((0, -1), (-1, 0)): utility.menu.load_image('body_bl', 1.6),
             ((0, 1), (1, 0)): utility.menu.load_image('body_tr', 1.6),
@@ -187,6 +206,8 @@ class Snake:
             ((1, 0), (0, -1)): utility.menu.load_image('body_tl', 1.6),
             ((0, 1), (-1, 0)): utility.menu.load_image('body_tl', 1.6)
         }
+        # ERROR: ((-1, 0), (0, 1)) LEFT-DOWN
+        # TOP-RIGHT
 
         self.body = pg.sprite.Group()
         SnakeBody(*head_pos,
@@ -203,9 +224,16 @@ class Snake:
         self.len_queue = 0
         """Длина очереди на рост"""
 
-    def add_block_to_snake(self):
+    def add_block(self):
+        """
+        Добавление блока в змею
+
+        Хвост уходит назад
+
+        """
+        # KeyError: (-1, 0)
         SnakeBody(*self.prev_pos,
-                  self.body_images[self.prev_dir], self.prev_dir, self.body)
+                  self.body_images[self.prev_dir, self.body.sprites()[0].dir], self.prev_dir, self.body)
 
     def image_head(self) -> pg.Surface:
         return self.head_images[self.cur_direction[0], self.cur_direction[1]]
@@ -228,9 +256,12 @@ class Snake:
         # 3. Менять направление.
         if self.len_queue != 0:
             self.add_block()
+            self.len_queue -= 1
 
         prev_block_pos = self.body.sprites()[0].rect.topleft
         prev_block_dir = self.body.sprites()[0].dir
+
+        """Вынести проверку коллизии вне цикла"""
 
         for index, block in enumerate(self.body):
             if index == 0:
@@ -241,6 +272,9 @@ class Snake:
                 # 0 — ничего
                 if state_collision == -1:
                     return False
+                elif state_collision == 1:
+                    self.add_block()
+                    self.len_queue -= 1
 
                 self.body_direction = self.cur_direction
 
@@ -250,21 +284,23 @@ class Snake:
                 continue
             elif index == len(self.body) - 1:
                 # Хвост
-                # prev_block_dir = self.body.sprites()[index - 1].dir
+                pbd = self.body.sprites()[index - 1].dir
                 self.prev_pos = block.rect.topleft
                 self.prev_dir = block.dir
-                block.update(*prev_block_pos, prev_block_dir, self.tail_images[prev_block_dir])
+                block.update(*prev_block_pos, pbd, self.tail_images[pbd])
                 continue
 
             # Тело
             # prev_block_dir = self.body.sprites()[index - 1].dir
             to_set_pos = prev_block_pos
+            to_set_dir = prev_block_dir
             prev_block_pos = block.rect.topleft
-            block.update(*to_set_pos, prev_block_dir, self.body_images[block.dir, prev_block_dir])
+            prev_block_dir = block.dir
+            block.update(*to_set_pos, to_set_dir, self.body_images[to_set_dir, self.body.sprites()[index - 1].dir])
 
         return True
 
-    def is_collide(self, fruit_group: pg.sprite.Group, wall_group) -> int:
+    def is_collide(self, item_group: pg.sprite.Group, wall_group) -> int:
         """
         Проверка змеи на предмет коллизии.
 
@@ -272,6 +308,7 @@ class Snake:
         Внутренни
 
         """
+        """ДОБАВИТЬ КОЛЛИЗИЮ С САМИМ СОБОЙ!"""
         future_head_coords = (self.body.sprites()[0].rect.topleft[0] + self.cur_direction[0] * len_cell,
                               self.body.sprites()[0].rect.topleft[1] + self.cur_direction[1] * len_cell)
         # Коллизия со внешними стенами
@@ -286,21 +323,14 @@ class Snake:
                 return -1
 
         # Коллизия со фруктом | ключем
-        for index_fruit_key in range(len(fruit_group)):
-            fruit_key = fruit_group.sprites()[index_fruit_key].rect.topleft
-            if future_head_coords == fruit_key:
-                return fruit_group.sprites()[index_fruit_key].check_collision(self)
+        for item_index in range(len(item_group)):
+            fruit_key_coords = item_group.sprites()[item_index].rect.topleft
+            if future_head_coords == fruit_key_coords:
+                print("fruit_checked")
+                return item_group.sprites()[item_index].check_collision(self)
 
         # Пустое пространство
         return 0
-
-    def add_block(self) -> None:
-        """
-        Добавление блока в змею
-
-        Хвост уходит назад
-
-        """
 
     def set_direction(self, direction) -> bool:
         """
@@ -323,20 +353,18 @@ class Game:
     def __init__(self, screen: pg.Surface, empty_space, walls, head_snake, tail_snake, exit_pos, level):
         """
 
-        :param screen: Экран
-        :param empty_space: Координаты пустых квадратов
-        :param walls: Координаты стен
-        :param head_snake: Координаты головы змеи
-        :param tail_snake: Координаты хвоста змеи
-        :param exit_pos: Координаты точки, врезавшись в стену рядом с которой уровень закончится (НА БУДУЩЕЕ)
+        :param screen: Экран.
+        :param empty_space: Координаты пустых квадратов.
+        :param walls: Координаты стен.
+        :param head_snake: Координаты головы змеи.
+        :param tail_snake: Координаты хвоста змеи.
+        :param exit_pos: Координаты точки, врезавшись в стену рядом с которой уровень закончится. (НА БУДУЩЕЕ)
 
         """
         self.level = level
         self.exit_pos = exit_pos
         self.screen = screen
         self.empty_space = empty_space
-        self.item_group = pg.sprite.Group()
-        self.fruit = Fruit(1, self.empty_space, self.item_group)
 
         self.walls_group = pg.sprite.Group()
 
@@ -359,6 +387,9 @@ class Game:
                 snake_dir = (-1, 0)
 
         self.snake = Snake(snake_dir, head_snake, tail_snake)
+
+        self.item_group = pg.sprite.Group()
+        self.fruit = Fruit(1, self.snake, self.empty_space, self.item_group)
 
     def game_loop(self) -> int:
         move_snake_event = pg.USEREVENT + 1
@@ -385,7 +416,7 @@ class Game:
                 if event.type == pg.KEYDOWN:
                     # Попытка обновления направления змеи
                     # pg.event.post(gameover_ev)
-                    # Звук по-модулю
+                    # Звук по остатку от деления счётчика звука на кол-во звуков.
                     state = False
                     if event.key == pg.K_UP:
                         state = self.snake.set_direction((0, -1))
@@ -408,6 +439,6 @@ class Game:
         utility.menu.background_render(self.screen, len_side_screen, count_cells)
         self.walls_group.draw(self.screen)
         self.snake.draw(self.screen)
+        self.item_group.draw(self.screen)
         pg.display.flip()
-        # self.item_group.draw(self.screen)
         # pg.display.flip()
