@@ -19,6 +19,33 @@ tile_images = {
     'apple': utility.menu.load_image('apple', 1.6),
     'cage': utility.menu.load_image('cage', 2)
 }
+head_images = {
+    (1, 0): utility.menu.load_image('head_right', 1.6),
+    (-1, 0): utility.menu.load_image('head_left', 1.6),
+    (0, -1): utility.menu.load_image('head_up', 1.6),
+    (0, 1): utility.menu.load_image('head_down', 1.6)
+}
+# Для отображения хвоста берётся только направление его "предыдущего" блока
+tail_images = {
+    (-1, 0): utility.menu.load_image('tail_right', 1.6),
+    (1, 0): utility.menu.load_image('tail_left', 1.6),
+    (0, 1): utility.menu.load_image('tail_up', 1.6),
+    (0, -1): utility.menu.load_image('tail_down', 1.6)
+}
+body_images = {
+    ((1, 0), (1, 0)): utility.menu.load_image('body_horizontal', 1.6),
+    ((-1, 0), (-1, 0)): utility.menu.load_image('body_horizontal', 1.6),
+    ((0, 1), (0, 1)): utility.menu.load_image('body_vertical', 1.6),
+    ((0, -1), (0, -1)): utility.menu.load_image('body_vertical', 1.6),
+    ((0, -1), (1, 0)): utility.menu.load_image('body_br', 1.6),
+    ((-1, 0), (0, 1)): utility.menu.load_image('body_br', 1.6),
+    ((1, 0), (0, 1)): utility.menu.load_image('body_bl', 1.6),
+    ((0, -1), (-1, 0)): utility.menu.load_image('body_bl', 1.6),
+    ((0, 1), (1, 0)): utility.menu.load_image('body_tr', 1.6),
+    ((-1, 0), (0, -1)): utility.menu.load_image('body_tr', 1.6),
+    ((1, 0), (0, -1)): utility.menu.load_image('body_tl', 1.6),
+    ((0, 1), (-1, 0)): utility.menu.load_image('body_tl', 1.6)
+}
 
 
 class sound_turn:
@@ -85,7 +112,6 @@ class Fruit(pg.sprite.Sprite):
         if not self.is_special or self.is_special and snake.is_holding_key:
             self.update()
             snake.len_queue += 1 + int(self.is_special)
-            print('fruit_grab')
             return 1
         return -1
 
@@ -177,48 +203,21 @@ class Snake:
         self.cur_direction = head_dir
         self.body_direction = head_dir
         self.is_holding_key = False
-        # self.head = utility.menu.load_image('head_right', 2)
-
-        self.head_images = {
-            (1, 0): utility.menu.load_image('head_right', 1.6),
-            (-1, 0): utility.menu.load_image('head_left', 1.6),
-            (0, -1): utility.menu.load_image('head_up', 1.6),
-            (0, 1): utility.menu.load_image('head_down', 1.6)
-        }
-        # Для отображения хвоста берётся только направление его "предыдущего" блока
-        self.tail_images = {
-            (-1, 0): utility.menu.load_image('tail_right', 1.6),
-            (1, 0): utility.menu.load_image('tail_left', 1.6),
-            (0, 1): utility.menu.load_image('tail_up', 1.6),
-            (0, -1): utility.menu.load_image('tail_down', 1.6)
-        }
-        self.body_images = {
-            ((1, 0), (1, 0)): utility.menu.load_image('body_horizontal', 1.6),
-            ((-1, 0), (-1, 0)): utility.menu.load_image('body_horizontal', 1.6),
-            ((0, 1), (0, 1)): utility.menu.load_image('body_vertical', 1.6),
-            ((0, -1), (0, -1)): utility.menu.load_image('body_vertical', 1.6),
-            ((0, -1), (1, 0)): utility.menu.load_image('body_br', 1.6),
-            ((-1, 0), (0, 1)): utility.menu.load_image('body_br', 1.6),
-            ((1, 0), (0, 1)): utility.menu.load_image('body_bl', 1.6),
-            ((0, -1), (-1, 0)): utility.menu.load_image('body_bl', 1.6),
-            ((0, 1), (1, 0)): utility.menu.load_image('body_tr', 1.6),
-            ((-1, 0), (0, -1)): utility.menu.load_image('body_tr', 1.6),
-            ((1, 0), (0, -1)): utility.menu.load_image('body_tl', 1.6),
-            ((0, 1), (-1, 0)): utility.menu.load_image('body_tl', 1.6)
-        }
-        # ERROR: ((-1, 0), (0, 1)) LEFT-DOWN
-        # TOP-RIGHT
 
         self.body = pg.sprite.Group()
         SnakeBody(*head_pos,
-                  self.head_images[head_dir],
+                  head_images[head_dir],
                   head_dir, self.body)
         SnakeBody(*tail_pos,
-                  self.tail_images[head_dir[0], head_dir[1]],
+                  tail_images[head_dir[0], head_dir[1]],
                   head_dir, self.body)
 
         self.prev_pos = (tail_pos[0] - 1, tail_pos[1] - 1)
-        """Информация о предыдущей последней клетке для корректного отрисовывания хвоста"""
+        """
+        Информация о предыдущей последней клетке для корректного отрисовывания хвоста
+        Хотя в теории это не нужно.
+        Можно ставить любой dir, в любом случае всё обновится.
+        """
         self.prev_dir = head_dir
 
         self.len_queue = 0
@@ -231,12 +230,11 @@ class Snake:
         Хвост уходит назад
 
         """
-        # KeyError: (-1, 0)
         SnakeBody(*self.prev_pos,
-                  self.body_images[self.prev_dir, self.body.sprites()[0].dir], self.prev_dir, self.body)
+                  tail_images[self.prev_dir], self.prev_dir, self.body)
 
     def image_head(self) -> pg.Surface:
-        return self.head_images[self.cur_direction[0], self.cur_direction[1]]
+        return head_images[self.cur_direction[0], self.cur_direction[1]]
 
     def draw(self, screen):
         self.body.draw(screen)
@@ -254,6 +252,19 @@ class Snake:
         # 1. Сохранять коорды переднего блока до изменения -> Перемещать текущий блок на место нового
         # 2. Брать текстуру исходя из текущего направления + направления "предыдущего" блока
         # 3. Менять направление.
+
+        state_collision = self.is_collide(fruit_group, wall_group)
+        # -1 — врезался в непроходимый объект.
+        # 1 — фрукт
+        # 0 — ничего
+        if state_collision == -1:
+            return False
+        elif state_collision == 1:
+            pass
+            # play_sound_eating
+            # self.add_block()
+            # self.len_queue -= 1
+
         if self.len_queue != 0:
             self.add_block()
             self.len_queue -= 1
@@ -266,15 +277,6 @@ class Snake:
         for index, block in enumerate(self.body):
             if index == 0:
                 # Голова
-                state_collision = self.is_collide(fruit_group, wall_group)
-                # -1 — врезался в непроходимый объект.
-                # 1 — фрукт
-                # 0 — ничего
-                if state_collision == -1:
-                    return False
-                elif state_collision == 1:
-                    self.add_block()
-                    self.len_queue -= 1
 
                 self.body_direction = self.cur_direction
 
@@ -287,7 +289,7 @@ class Snake:
                 pbd = self.body.sprites()[index - 1].dir
                 self.prev_pos = block.rect.topleft
                 self.prev_dir = block.dir
-                block.update(*prev_block_pos, pbd, self.tail_images[pbd])
+                block.update(*prev_block_pos, pbd, tail_images[pbd])
                 continue
 
             # Тело
@@ -296,7 +298,7 @@ class Snake:
             to_set_dir = prev_block_dir
             prev_block_pos = block.rect.topleft
             prev_block_dir = block.dir
-            block.update(*to_set_pos, to_set_dir, self.body_images[to_set_dir, self.body.sprites()[index - 1].dir])
+            block.update(*to_set_pos, to_set_dir, body_images[to_set_dir, self.body.sprites()[index - 1].dir])
 
         return True
 
@@ -308,9 +310,9 @@ class Snake:
         Внутренни
 
         """
-        """ДОБАВИТЬ КОЛЛИЗИЮ С САМИМ СОБОЙ!"""
         future_head_coords = (self.body.sprites()[0].rect.topleft[0] + self.cur_direction[0] * len_cell,
                               self.body.sprites()[0].rect.topleft[1] + self.cur_direction[1] * len_cell)
+
         # Коллизия со внешними стенами
         if (0 > future_head_coords[0] or 0 > future_head_coords[1] or
                 len_side_screen < future_head_coords[0] or len_side_screen < future_head_coords[1]):
@@ -322,12 +324,16 @@ class Snake:
             if future_head_coords == wall_coords:
                 return -1
 
-        # Коллизия со фруктом | ключем
+        # Коллизия с фруктом | ключем
         for item_index in range(len(item_group)):
             fruit_key_coords = item_group.sprites()[item_index].rect.topleft
             if future_head_coords == fruit_key_coords:
-                print("fruit_checked")
                 return item_group.sprites()[item_index].check_collision(self)
+
+        # Коллизия с телом
+        for index in range(2, len(self.body) - 1):
+            if future_head_coords == self.body.sprites()[index].rect.topleft:
+                return -1
 
         # Пустое пространство
         return 0
