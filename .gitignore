@@ -160,3 +160,7 @@ cython_debug/
 #.idea/
 .idea/Summer_practice-snake.iml
 .idea/misc.xml
+.idea/misc.xml
+.idea/Summer_practice-snake.iml
+*.xml
+*.iml

@@ -12,7 +12,7 @@ menu_index = 0
 
 
 def load_image(name, resize_ch=1):
-    fullname = os.path.join('textures', name)
+    fullname = os.path.join('textures', name + ".png")
     try:
         image = pg.image.load(fullname)
     except pg.error as message:
@@ -90,9 +90,22 @@ def level_screen(screen: pygame.Surface, len_side_screen: int, count_cells: int)
     level_screen_buttons.draw(screen)
 
 
-def gameover_screen(screen: pygame.Surface, len_side_screen: int, count_cells: int, len_snake: int) -> None:
+def gameover_screen(screen: pygame.Surface, level: int, len_side_screen: int, count_cells: int, len_snake: int) -> None:
     background_render(screen, len_side_screen, count_cells)
     gameover_screen_buttons.draw(screen)
+    text = ["GAME OVER",
+            f'length of a Snake: {len_snake}']
+    font = pygame.font.Font(None, 100)
+    text_coord = 50
+    for line in text:
+        string_rendered = font.render(line, 1, pygame.Color('black'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 20
+        intro_rect.top = text_coord
+        intro_rect.x = len_side_screen // 2 - string_rendered.get_size()[0] // 2
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+    """Для кнопки restart можно просто передавать значение через аргумент"""
 
 
 config = configparser.ConfigParser()
@@ -102,15 +115,21 @@ count_cells = int(config['screen']['count_cells'])
 
 level_buttons_resize = 3
 
+
+"""Возможно, кнопки стоит перенести в функции"""
 start_screen_buttons = pg.sprite.Group()
 exit_button = Button(len_side_screen // 2, len_side_screen // 2 + ((len_side_screen // 2) // 3) * 2,
-                     load_image("end.png", 7), -1, start_screen_buttons)
-start_button = Button(len_side_screen // 2, len_side_screen // 2, load_image("start.png", 7), 1,
+                     load_image("end", 7), -1, start_screen_buttons)
+start_button = Button(len_side_screen // 2, len_side_screen // 2, load_image("start", 7), 1,
                       start_screen_buttons)
 
 level_screen_buttons = pg.sprite.Group()
 level_1_button = Button(len_side_screen // 2 - (len_side_screen // 2) // 3 * 2, len_side_screen // 2,
-                        load_image("1.png", level_buttons_resize), 1, level_screen_buttons, is_game_level=True)
+                        load_image("1", level_buttons_resize), 1, level_screen_buttons, is_game_level=True)
+level_2_button = Button(len_side_screen // 2 - (len_side_screen // 2) // 3 * 1, len_side_screen // 2,
+                        load_image("2", level_buttons_resize), 2, level_screen_buttons, is_game_level=True)
+back_button = Button(len_side_screen // 2, len_side_screen // 2 + ((len_side_screen // 2) // 3) * 2,
+                     load_image("back", 7), 0, level_screen_buttons)
 
 gameover_screen_buttons = pg.sprite.Group()
 

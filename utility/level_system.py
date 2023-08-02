@@ -4,13 +4,12 @@
 Здесь располагаются все механики, связаные с генерацией уровня.
 """
 import configparser
-
 import pygame as pg
-from utility.menu import load_image
 
-tile_images = {
-    'wall': load_image('wall-block(r).png')
-}
+import Game_modules.game_module
+import utility
+from Game_modules import game_module
+from utility.menu import load_image
 
 config = configparser.ConfigParser()
 config.read('config.cfg')
@@ -32,27 +31,45 @@ def load_level(filename: str) -> list[list[str]]:
     return level_map
 
 
-def start_level(level):
+"""
+Как правильно загружать уровни?
+Если игрок захочет переключиться между уровнями придётся тогда очищать списки?
+Или же делать абстрактный класс игра, в котором будут инициализироваться объекты по спискам
+"""
+
+
+def start_level(screen, level):
+    empty_space = []
+    walls_pos = []
+    head_snake = ()
+    tail_snake = ()
+    exit_pos = ()
+
     level_map = load_level(f'{level}')
+
     for i, row in enumerate(level_map):
         for j, sym in enumerate(row):
-            coord_cell = (cell_len * i, cell_len * j)
-            empty_space = []
-            walls = []
-            head_snake
-            tail_snake
+            coord_cell = (cell_len * j, cell_len * i)
 
             match sym:
                 case '.':
                     empty_space.append(coord_cell)
                 case 'I':
-                    walls.append(coord_cell)
+                    walls_pos.append(coord_cell)
                 case 'Z':
                     head_snake = coord_cell
                 case 'z':
                     tail_snake = coord_cell
+                case 'e':
+                    exit_pos = coord_cell
+    game = Game_modules.game_module.Game(screen, empty_space, walls_pos, head_snake, tail_snake, exit_pos, level)
+    game.game_loop()
+    # Далее тут будет распознавание начального положения змеи из координат головы и хвоста.
 
 
 """
 В идеале надо вынести всё взаимодействие с графикой (load_image, etc.) в отдельное место
+"""
+"""
+Стены + выход ставятся однократно
 """
