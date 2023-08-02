@@ -45,7 +45,7 @@ while running:
                     pg.display.set_caption('Выбор уровня')
                     level_screen(screen, len_side_screen, count_cells)
                 elif utility.menu.menu_index == 2:
-                    gameover_screen(screen, len_side_screen, count_cells, cur_len_snake)
+                    gameover_screen(screen, utility.menu.menu_index - 3, len_side_screen, count_cells, cur_len_snake)
                 else:
                     pg.display.set_caption(f'Уровень {utility.menu.menu_index - 3}')
                     # menu_index >= 3
