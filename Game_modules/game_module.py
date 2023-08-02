@@ -233,6 +233,8 @@ class Snake:
                 if state_collision == -1:
                     return False
 
+                self.body_direction = self.cur_direction
+
                 block.update(block.rect.x + self.cur_direction[0] * len_cell,
                              block.rect.y + self.cur_direction[1] * len_cell, self.cur_direction,
                              self.image_head())
