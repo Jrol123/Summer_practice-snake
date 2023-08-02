@@ -42,6 +42,7 @@ class Wall(pg.sprite.Sprite):
 Ключ будет лежать в одной группе с Fruit
 """
 
+
 class Fruit(pg.sprite.Sprite):
     def __init__(self, counter_fruit, empty_space, group):
         super().__init__(group)
@@ -267,21 +268,17 @@ class Snake:
                 len_side_screen < future_head_coords[0] or len_side_screen < future_head_coords[1]):
             return -1
 
-        """
-        Переработать коллизии со внутренними объектами
-        """
-        # if future_head_coords in wall_group.sprites().
-
-        # Коллизия со фруктами
-        if pg.sprite.spritecollide(self.body.sprites()[0], fruit_group, 0):
-            return fruit_group.sprites()[0].check_collision(self)
-
-
-
         # Коллизия со внутренними стенами
-        # if
-        if pg.sprite.spritecollide(self.body.sprites()[0], wall_group, 0):
-            return -1
+        for index_wall in range(len(wall_group)):
+            wall_coords = wall_group.sprites()[index_wall].rect.topleft
+            if future_head_coords == wall_coords:
+                return -1
+
+        # Коллизия со фруктом | ключем
+        for index_fruit_key in range(len(fruit_group)):
+            fruit_key = fruit_group.sprites()[index_fruit_key].rect.topleft
+            if future_head_coords == fruit_key:
+                return fruit_group.sprites()[index_fruit_key].check_collision(self)
 
         # Пустое пространство
         return 0
@@ -304,7 +301,8 @@ class Snake:
         :return: Получилось ли изменить направление
 
         """
-        if self.body_direction[0] == -direction[0] and self.body_direction[1] == direction[1]:
+        if self.body_direction[0] == -direction[0] and self.body_direction[1] == direction[1] or \
+                self.body_direction[1] == -direction[1] and self.body_direction[0] == direction[0]:
             return False
         self.cur_direction = direction
         return True
@@ -351,7 +349,6 @@ class Game:
 
         self.snake = Snake(snake_dir, head_snake, tail_snake)
 
-    """Не активируется gameover_screen"""
     def game_loop(self) -> int:
         move_snake_event = pg.USEREVENT + 1
         gameover_event = pg.USEREVENT + 2
