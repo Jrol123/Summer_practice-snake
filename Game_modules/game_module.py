@@ -1,5 +1,7 @@
 """
-Empty.
+Игровой модуль.
+
+Содержит всю игровую логику.
 """
 import configparser
 import pygame as pg
@@ -12,11 +14,11 @@ config.read('config.cfg')
 len_side_screen = int(config['screen']['len_side'])
 count_cells = int(config['screen']['count_cells'])
 speed_movement = 500
+"""Скорость такта передвижения змеи"""
 fruit_step = 6
+"""Сколько должно пройти фруктов перед особым фруктом -1"""
 accel = 6
-# speed_movement = int(config['game']['speed'])
-# fruit_step = int(config['game']['fruit_step'])
-# accel = int(config['game']['accel'])
+"""Раз в какое кол-во фруктов скорость такта уменьшается на 1"""
 len_cell = len_side_screen // count_cells
 
 tile_images = {
@@ -25,19 +27,23 @@ tile_images = {
     'apple_cage': utility.menu.load_image('apple_cage', 1.6),
     'key': utility.menu.load_image('key', 2)
 }
+"""Изображения предметов"""
 head_images = {
     (1, 0): utility.menu.load_image('head_right', 1.6),
     (-1, 0): utility.menu.load_image('head_left', 1.6),
     (0, -1): utility.menu.load_image('head_up', 1.6),
     (0, 1): utility.menu.load_image('head_down', 1.6)
 }
-# Для отображения хвоста берётся только направление его "предыдущего" блока
+"""Изображения головы"""
+# issue #50
 tail_images = {
     (-1, 0): utility.menu.load_image('tail_right', 1.6),
     (1, 0): utility.menu.load_image('tail_left', 1.6),
     (0, 1): utility.menu.load_image('tail_up', 1.6),
     (0, -1): utility.menu.load_image('tail_down', 1.6)
 }
+"""Изображения хвоста"""
+# Для отображения хвоста берётся только направление его "предыдущего" блока
 body_images = {
     ((1, 0), (1, 0)): utility.menu.load_image('body_horizontal', 1.6),
     ((-1, 0), (-1, 0)): utility.menu.load_image('body_horizontal', 1.6),
@@ -52,6 +58,11 @@ body_images = {
     ((1, 0), (0, -1)): utility.menu.load_image('body_tl', 1.6),
     ((0, 1), (-1, 0)): utility.menu.load_image('body_tl', 1.6)
 }
+"""
+Изображения тела.
+
+Для получения изображения используются старое и новое направления.
+"""
 
 
 class sound_turn:
@@ -60,66 +71,101 @@ class sound_turn:
 
 
 class Wall(pg.sprite.Sprite):
-    def __init__(self, x, y, group):
+    """
+    Класс внутренней стены.
+
+    :ivar image: Изображение стены.
+    :type image: pg.Surface
+    :ivar rect: Прямоугольник изображения.
+    :type rect: pg.Rect
+
+    """
+
+    def __init__(self, x: int, y: int, group: pg.sprite.Group):
         super().__init__(group)
         self.image = tile_images['wall']
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
 
-"""
-Для определения грамотного положения фрукта + ключа есть 3 стула:
-1. Двойной for
-2. Двумерный массив empty_space (Нужно переделать чтение уровня)
-3. Через random
-
-Ниже будет реализована версия через двойной for
-"""
-
 
 class Key(pg.sprite.Sprite):
-    def __init__(self, cur_space: list[int], group: pg.sprite.Group):
-        super().__init__(group)
+    """
+    Класс ключа.
+
+    :ivar image: Изображение ключа.
+    :type image: pg.Surface
+    :ivar rect: Прямоугольник изображения.
+    :type rect: pg.Rect
+
+    """
+
+    def __init__(self, cur_space: list[tuple[int, int]], *groups: list[pg.sprite.Group]):
+        super().__init__(*groups)
         self.image = tile_images['key']
         self.rect = self.image.get_rect()
         self.rect.topleft = cur_space[random.randint(0, len(cur_space) - 1)]
 
-    def check_collision(self, snake) -> bool:
+    def check_collision(self, snake) -> int:
         """
+        Метод реакции на коллизию со змеёй.
 
-        :param snake:
+        При коллизии удаляется из группы и удаляется из памяти.
+
+        :param snake: Змея.
         :type snake: Snake
+
+        :return: Получилось ли выполнить функцию.
+        :rtype: int
 
         """
         snake.is_holding_key = True
         self.groups()[0].sprites()[0].image = tile_images['apple']
         self.groups()[0].remove(self)
         del self
-        return True
+        return 1
 
 
 class Fruit(pg.sprite.Sprite):
-    def __init__(self, counter_fruit: int, snake, empty_space: list[int], group: pg.sprite.Group):
+    """
+    Класс фрукта.
+
+    :ivar counter_fruit: Номер фрукта. Нужен для определения того, когда стоит его делать особенным.
+    :type counter_fruit: int
+    :ivar empty_space: Множество ячеек, не являющихся стеной.
+    :type empty_space: list[tuple[int, int]]
+    :ivar image: Изображение фрукта.
+    :type image: pg.Surface
+    :ivar rect: Прямоугольник изображения.
+    :type rect: pg.Rect
+    :ivar is_special: Является ли фрукт особенным (под клеткой)
+    :type is_special: bool
+
+    """
+
+    def __init__(self, counter_fruit: int, snake, empty_space: list[tuple[int, int]], group: pg.sprite.Group):
         super().__init__(group)
         self.counter_fruit = counter_fruit % fruit_step
         self.empty_space = empty_space
         cur_space = self.free_coords(snake, self.empty_space)
-        # Сделать двойной цикл, где для каждого snake_obj проверяется empty_space. Если есть коллизия — удаляется
-        # Исключить координаты змеи.
-        # Исключить координату перед змеёй.
 
         self.image = tile_images['apple']
         self.rect = self.image.get_rect()
         self.rect.topleft = cur_space[random.randint(0, len(cur_space) - 1)]
 
         self.is_special = False
-        """Является ли фрукт — особенным (под клеткой)"""
 
     def check_collision(self, snake) -> int:
         """
-        Если у змеи есть ключ ИЛИ фрукт обычный — update() + return 1
+        Проверка коллизии со змеёй
+
+        Если фрукт необычный И у змеи есть ключ ИЛИ фрукт обычный — update() + return 1
         В противном случае return -1
+
+        :param snake: Змея.
         :type snake: Snake
-        :return:
+
+        :return: Смогла ли змея взять фрукт.
+        :rtype: int
 
         """
         if not self.is_special or self.is_special and snake.is_holding_key:
@@ -134,9 +180,20 @@ class Fruit(pg.sprite.Sprite):
             return 1
         return -1
 
-    def free_coords(self, snake, space):
+    def free_coords(self, snake, space: list[tuple[int, int]]) -> list[tuple[int, int]]:
+        """
+        Определение ячеек без объектов.
+
+        :param snake: Змея.
+        :type snake: Snake
+        :param space: Пространство без стен.
+        :type space: list[tuple[int, int]]
+
+        :return: Список координат ячеек без блоков змеи.
+        :rtype: list[tuple[int, int]]
+
+        """
         cur_space = space.copy()
-        """list.remove(x): x not in list"""
         for body in snake.body:
             cur_space.remove(body.rect.topleft)
 
@@ -153,15 +210,18 @@ class Fruit(pg.sprite.Sprite):
 
     def update(self, snake):
         """
-        В этом update фрукт будет менять своё положение + при необходимости, создавать ключ
+        Изменение положение фрукта и, при необходимости, создание ключа.
+
+        :param snake: Змея.
+        :type snake: Snake
 
         """
         self.counter_fruit = (self.counter_fruit + 1) % fruit_step
-        self.is_special = self.counter_fruit == 0
+        self.is_special = self.counter_fruit == 0 and len(self.empty_space) - 2 >= len(snake.body)
 
         cur_space = self.free_coords(snake, self.empty_space)
 
-        coords = self.empty_space[random.randint(0, len(cur_space) - 1)]
+        coords = cur_space[random.randint(0, len(cur_space) - 1)]
 
         if not self.is_special:
             self.image = tile_images['apple']
@@ -176,32 +236,17 @@ class Fruit(pg.sprite.Sprite):
         self.rect.topleft = coords
 
 
-"""
-2. Как работать с анимациями в данной игре?
-И нужны ли они вообще?
-Скорее всего нет, потому как я их вообще не успею добавить, что, конечно, печально.
-
-3. Как определять коллизии с предметом?
-Через класс змеи?
-
-5. Как отрисовывать фрукты?
-Если учесть, что фрукты не могут появляться прямо на змее или перед змеёй
-
-6. Как учитывать то, что хвост должен оставаться на месте?
-Всегда хранить его предыдущие координаты и в случае чего откатывать хвост на них, чтобы при продвижении далее хвост снова подвинулся на своё исходное место?
-
-"""
-"""
-1. При нажатии на кнопки таймер тут-же сбрасывается и змея моментально двигается.
-В противном случае происходит таймер и змея двигается по-направлению
-
-2. snake.body будет содержать ВСЕ элементы тела, в том числе и голову с хвостом.
-В случае необходимости они просто будут обновляться и всё.
-Направление движения будет храниться в отдельной переменной.
-"""
-
-
 class SnakeBody(pg.sprite.Sprite):
+    """
+    Класс блока тела змеи.
+
+    :ivar image: Изображение блока тела.
+    :type image: pg.Surface
+    :ivar rect: Прямоугольник изображения.
+    :type rect: pg.Rect
+    :ivar dir: Текущее направление блока тела.
+
+    """
     def __init__(self, x: int, y: int, image: pg.Surface, dir: tuple[int, int], group: pg.sprite.Group):
         super().__init__(group)
         self.image = image
@@ -210,6 +255,19 @@ class SnakeBody(pg.sprite.Sprite):
         self.dir = dir
 
     def update(self, x: int, y: int, dir: tuple[int, int], image: pg.Surface) -> None:
+        """
+        Обновление блока тела.
+
+        :param x: Координата блока тела по x.
+        :type x: int
+        :param y: Координата блока тела по y.
+        :type y: int
+        :param dir: Новое направление блока тела.
+        :type dir: tuple[int, int]
+        :param image: Изображение блока тела.
+        :type image: pg.Surface
+
+        """
         self.image = image
         self.rect = self.image.get_rect()
         self.dir = dir
@@ -220,11 +278,18 @@ class Snake:
     """
     Класс змеи.
 
-    :ivar body_direction: Предыдущее направление змеи
+    :ivar body_direction: Предыдущее направление змеи.
     :type body_direction: tuple[int, int]
-    :ivar cur_direction: Текущее направление змеи. Также используется как направление для body[0] (головы)
+    :ivar cur_direction: Текущее направление змеи. Также используется как направление для body[0] (головы).
     :type cur_direction: tuple[int, int]
-    :ivar body: Положение множества блоков тела. В него не входит голова, но входит хвост
+    :ivar body: Положение множества блоков тела. В него не входит голова, но входит хвост.
+    :type body: pg.sprite.Group
+    :ivar is_holding_key: Держит ли змея ключ.
+    :type is_holding_key: bool
+    :ivar len_queue: Длина очереди на рост.
+    :type len_queue: int
+    :ivar prev_tail: Старые координаты хвоста. Нужны для правильной генерации нового фрукта.
+    :type prev_tail: tuple[int, int]
 
     """
 
@@ -243,48 +308,63 @@ class Snake:
 
         self.len_queue = 0
         """Длина очереди на рост"""
-        self.prev_tail = tuple[int, int]
+        self.prev_tail = (-1, -1)
         """координаты старого хвоста"""
 
     def add_block(self):
         """
-        Добавление блока в змею
+        Добавление блока в змею.
 
-        Хвост уходит назад
+        Хвост уходит назад.
 
         """
         SnakeBody(0, 0,
                   tail_images[(1, 0)], (0, 0), self.body)
 
     def draw_head(self):
+        """
+        Отрисовка головы при её повороте до движения.
+
+        """
         image = self.image_head()
         coords = self.body.sprites()[0].rect.topleft
         self.body.sprites()[0].update(*coords, self.cur_direction, image)
 
     def image_head(self) -> pg.Surface:
+        """
+        Определение картинки для головы.
+
+        :return: Картинка головы змеи.
+        :rtype: pg.Surface
+
+        """
         return head_images[self.cur_direction[0], self.cur_direction[1]]
 
-    def draw(self, screen):
+    def draw(self, screen: pg.Surface):
+        """
+        Отрисовка тела змеи.
+
+        :param screen: Экран, на котором будет отрисовано тело.
+        :type screen: pg.Surface
+
+        """
         self.body.draw(screen)
 
-    def update(self, fruit_group, wall_group) -> bool:
+    def update(self, fruit_group: pg.sprite.Group, wall_group: pg.sprite.Group) -> bool:
         """
         Обновление спрайтов змеи.
 
-        """
-        # Работать с направлениями блоков.
-        # Если блок не первый, то мы смотрим, куда он ушёл.
-        # Если движение следующего блока не изменилось (он не ушёл с предыдущей прямой) спрайт не обновляется.
-        # В противном случае смотрим на старое направление и на новое направление
+        :param item_group: Группа предметов.
+        :type item_group: pg.sprite.Group
+        :param wall_group: Группа внутренних стен.
+        :type wall_group: pg.sprite.Group
 
-        # 1. Сохранять коорды переднего блока до изменения -> Перемещать текущий блок на место нового
-        # 2. Брать текстуру исходя из текущего направления + направления "предыдущего" блока
-        # 3. Менять направление.
+        :return: Как прошло обновление спрайтов.
+        :rtype: bool
+
+        """
 
         state_collision = self.is_collide(fruit_group, wall_group)
-        # -1 — врезался в непроходимый объект.
-        # 1 — фрукт
-        # 0 — ничего
         if state_collision == -1:
             return False
         elif state_collision == 1:
@@ -326,12 +406,19 @@ class Snake:
 
         return True
 
-    def is_collide(self, item_group: pg.sprite.Group, wall_group) -> int:
+    def is_collide(self, item_group: pg.sprite.Group, wall_group: pg.sprite.Group) -> int:
         """
-        Проверка змеи на предмет коллизии.
+        Проверка змеи на предмет коллизии с различными объектами.
 
-        Внешние стены проверяются по-координатам.
-        Внутренни
+        Внешние стены проверяются по будущим координатам головы.
+
+        :param item_group: Группа предметов.
+        :type item_group: pg.sprite.Group
+        :param wall_group: Группа внутренних стен.
+        :type wall_group: pg.sprite.Group
+
+        :return: Как прошла коллизия. 1 — фрукт, 0 — ничего, -1 — непроходимый объект.
+        :rtype: int
 
         """
         future_head_coords = (self.body.sprites()[0].rect.topleft[0] + self.cur_direction[0] * len_cell,
@@ -388,47 +475,61 @@ class Snake:
 
 
 class Game:
-    def __init__(self, screen: pg.Surface, empty_space, walls, head_snake, tail_snake, exit_pos):
-        """
+    """
+    Класс игры.
 
-        :param screen: Экран.
-        :param empty_space: Координаты пустых квадратов.
-        :param walls: Координаты стен.
-        :param head_snake: Координаты головы змеи.
-        :param tail_snake: Координаты хвоста змеи.
-        :param exit_pos: Координаты точки, врезавшись в стену рядом с которой уровень закончится. (НА БУДУЩЕЕ)
+    :ivar screen: Экран.
+    :type screen: pg.Surface
+    :ivar empty_space: Координаты пустых квадратов.
+    :type empty_space: list[tuple[int, int]]
+    :ivar walls_group: Группа внутренних стен.
+    :type walls_group: pg.sprite.Group
+    :ivar item_group: Группа предметов.
+    :type item_group: pg.sprite.Group
+    :ivar exit_pos: Координаты точки, врезавшись в стену рядом с которой уровень закончится. (НА БУДУЩЕЕ)
+    :type exit_pos: tuple[int, int]
+    :ivar snake: Змея.
+    :type snake: Snake
 
-        """
+    """
+    def __init__(self, screen: pg.Surface, empty_space: list[tuple[int, int]], walls_coords: list[tuple[int, int]],
+                 head_snake_pos: tuple[int, int], tail_snake_pos: tuple[int, int], exit_pos: tuple[int, int]):
         self.exit_pos = exit_pos
         self.screen = screen
         self.empty_space = empty_space
 
         self.walls_group = pg.sprite.Group()
 
-        for wall_coords in walls:
+        for wall_coords in walls_coords:
             Wall(*wall_coords, self.walls_group)
 
         snake_dir = (1, 0)
 
-        if head_snake[0] == tail_snake[0]:
+        if head_snake_pos[0] == tail_snake_pos[0]:
             # Находятся на одной OX
-            if head_snake[1] > tail_snake[1]:
+            if head_snake_pos[1] > tail_snake_pos[1]:
                 snake_dir = (0, 1)
             else:
                 snake_dir = (0, -1)
-        elif head_snake[1] == tail_snake[1]:
+        elif head_snake_pos[1] == tail_snake_pos[1]:
             # Находятся на одной OY
-            if head_snake[0] > tail_snake[0]:
+            if head_snake_pos[0] > tail_snake_pos[0]:
                 snake_dir = (1, 0)
             else:
                 snake_dir = (-1, 0)
 
-        self.snake = Snake(snake_dir, head_snake, tail_snake)
+        self.snake = Snake(snake_dir, head_snake_pos, tail_snake_pos)
 
         self.item_group = pg.sprite.Group()
-        self.fruit = Fruit(1, self.snake, self.empty_space, self.item_group)
+        Fruit(1, self.snake, self.empty_space, self.item_group)
 
     def game_loop(self) -> int:
+        """
+        Игровой цикл.
+
+        :return: Длина змеи.
+        :rtype int:
+        """
         move_snake_event = pg.USEREVENT + 1
         gameover_event = pg.USEREVENT + 2
 
@@ -453,7 +554,6 @@ class Game:
                     pg.time.set_timer(move_snake_event, speed_movement)  # Обновление скорости змеи
                 if event.type == pg.KEYDOWN:
                     # Попытка обновления направления змеи
-                    # pg.event.post(gameover_ev)
                     # Звук по остатку от деления счётчика звука на кол-во звуков.
                     state = False
                     if event.key == pg.K_UP:
@@ -470,6 +570,10 @@ class Game:
         return len(self.snake.body) - 2
 
     def draw_level(self):
+        """
+        Отрисовка уровня.
+
+        """
         self.screen.fill('black')
         utility.menu.background_render(self.screen, len_side_screen, count_cells)
         self.walls_group.draw(self.screen)
