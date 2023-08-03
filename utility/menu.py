@@ -135,7 +135,7 @@ def start_screen(screen: pygame.Surface, len_side_screen: int, count_cells: int)
     :type count_cells: int
 
     """
-    background_render(screen, len_side_screen, count_cells)
+    background_render(screen, len_side_screen, count_cells, menu_colors)
 
     start_screen_buttons.draw(screen)
 
