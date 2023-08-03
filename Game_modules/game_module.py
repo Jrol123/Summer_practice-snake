@@ -178,14 +178,14 @@ class Fruit(pg.sprite.Sprite):
 
 
 class SnakeBody(pg.sprite.Sprite):
-    def __init__(self, x, y, image, dir, group):
+    def __init__(self, x: int, y: int, image: pg.Surface, dir: tuple[int, int], group: pg.sprite.Group):
         super().__init__(group)
         self.image = image
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
         self.dir = dir
 
-    def update(self, x: int, y: int, dir: tuple[int, int], image=None) -> None:
+    def update(self, x: int, y: int, dir: tuple[int, int], image: pg.Surface) -> None:
         self.image = image
         self.rect = self.image.get_rect()
         self.dir = dir
@@ -230,6 +230,11 @@ class Snake:
         SnakeBody(0, 0,
                   tail_images[(1, 0)], None, self.body)
 
+    def draw_head(self):
+        image = self.image_head()
+        coords = self.body.sprites()[0].rect.topleft
+        self.body.sprites()[0].update(*coords, self.cur_direction, image)
+
     def image_head(self) -> pg.Surface:
         return head_images[self.cur_direction[0], self.cur_direction[1]]
 
@@ -266,15 +271,12 @@ class Snake:
             self.add_block()
             self.len_queue -= 1
 
-        prev_block_pos = self.body.sprites()[0].rect.topleft
-        prev_block_dir = self.body.sprites()[0].dir
-
-        """Вынести проверку коллизии вне цикла"""
+        prev_pos = self.body.sprites()[0].rect.topleft
+        prev_dir = self.body_direction
 
         for index, block in enumerate(self.body):
             if index == 0:
                 # Голова
-
                 self.body_direction = self.cur_direction
 
                 block.update(block.rect.x + self.cur_direction[0] * len_cell,
@@ -284,16 +286,16 @@ class Snake:
             elif index == len(self.body) - 1:
                 # Хвост
                 pbd = self.body.sprites()[index - 1].dir
-                block.update(*prev_block_pos, pbd, tail_images[pbd])
+                block.update(*prev_pos, pbd, tail_images[pbd])
                 continue
 
             # Тело
-            # prev_block_dir = self.body.sprites()[index - 1].dir
-            to_set_pos = prev_block_pos
-            to_set_dir = prev_block_dir
-            prev_block_pos = block.rect.topleft
-            prev_block_dir = block.dir
-            block.update(*to_set_pos, to_set_dir, body_images[to_set_dir, self.body.sprites()[index - 1].dir])
+            to_set_pos = prev_pos
+            to_set_dir = prev_dir
+            prev_pos = block.rect.topleft
+            prev_dir = block.dir
+            block.update(*to_set_pos, to_set_dir,
+                         body_images[to_set_dir, self.body.sprites()[index - 1].dir])
 
         return True
 
@@ -430,12 +432,9 @@ class Game:
                         state = self.snake.set_direction((-1, 0))
                     elif event.key == pg.K_RIGHT:
                         state = self.snake.set_direction((1, 0))
-
-                    # Условие, отвечающее за то, чтобы при успешном нажатии змея моментально меняла направление,
-                    # не дожидаясь следующего такта
                     if state:
-                        pg.event.post(pg.event.Event(move_snake_event))
-                        pg.time.set_timer(move_snake_event, speed_movement)
+                        self.snake.draw_head()
+                        self.draw_level()
         return len(self.snake.body) - 2
 
     def draw_level(self):
