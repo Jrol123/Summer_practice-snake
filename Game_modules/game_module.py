@@ -334,6 +334,9 @@ class Snake:
         for index in range(2, len(self.body) - 1):
             if future_head_coords == self.body.sprites()[index].rect.topleft:
                 return -1
+        # Коллизия с хвостом
+        if future_head_coords == self.body.sprites()[-1].rect.topleft and self.len_queue > 0:
+            return -1
 
         # Пустое пространство
         return 0
