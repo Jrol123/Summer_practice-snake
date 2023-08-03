@@ -11,13 +11,19 @@ config = configparser.ConfigParser()
 config.read('config.cfg')
 len_side_screen = int(config['screen']['len_side'])
 count_cells = int(config['screen']['count_cells'])
-speed_movement = int(config['game']['speed'])
+speed_movement = 500
+fruit_step = 6
+accel = 6
+# speed_movement = int(config['game']['speed'])
+# fruit_step = int(config['game']['fruit_step'])
+# accel = int(config['game']['accel'])
 len_cell = len_side_screen // count_cells
 
 tile_images = {
     'wall': utility.menu.load_image('wall-block(r)', 2),
     'apple': utility.menu.load_image('apple', 1.6),
-    'cage': utility.menu.load_image('cage', 2)
+    'apple_cage': utility.menu.load_image('apple_cage', 1.6),
+    'key': utility.menu.load_image('key', 2)
 }
 head_images = {
     (1, 0): utility.menu.load_image('head_right', 1.6),
@@ -60,15 +66,6 @@ class Wall(pg.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.topleft = (x, y)
 
-
-"""
-У змеи будет параметр is_holding_key, отвечающий за возможность взять "особенный" фрукт
-"""
-
-"""
-Ключ будет лежать в одной группе с Fruit
-"""
-
 """
 Для определения грамотного положения фрукта + ключа есть 3 стула:
 1. Двойной for
@@ -80,23 +77,39 @@ class Wall(pg.sprite.Sprite):
 
 
 class Key(pg.sprite.Sprite):
-    def __init__(self, empty_space: list[int], group: pg.sprite.Group):
-        pass
+    def __init__(self, cur_space: list[int], group: pg.sprite.Group):
+        super().__init__(group)
+        self.image = tile_images['key']
+        self.rect = self.image.get_rect()
+        self.rect.topleft = cur_space[random.randint(0, len(cur_space) - 1)]
+
+    def check_collision(self, snake) -> bool:
+        """
+
+        :param snake:
+        :type snake: Snake
+
+        """
+        snake.is_holding_key = True
+        self.groups()[0].sprites()[0].image = tile_images['apple']
+        self.groups()[0].remove(self)
+        del self
+        return True
 
 
 class Fruit(pg.sprite.Sprite):
     def __init__(self, counter_fruit: int, snake, empty_space: list[int], group: pg.sprite.Group):
         super().__init__(group)
-        self.counter_fruit = counter_fruit % 5
+        self.counter_fruit = counter_fruit % fruit_step
         self.empty_space = empty_space
-        cur_space = self.free_coords(snake, empty_space)
+        cur_space = self.free_coords(snake, self.empty_space)
         # Сделать двойной цикл, где для каждого snake_obj проверяется empty_space. Если есть коллизия — удаляется
         # Исключить координаты змеи.
         # Исключить координату перед змеёй.
 
         self.image = tile_images['apple']
         self.rect = self.image.get_rect()
-        self.rect.topleft = empty_space[random.randint(0, len(cur_space) - 1)]
+        self.rect.topleft = cur_space[random.randint(0, len(cur_space) - 1)]
 
         self.is_special = False
         """Является ли фрукт — особенным (под клеткой)"""
@@ -110,15 +123,26 @@ class Fruit(pg.sprite.Sprite):
 
         """
         if not self.is_special or self.is_special and snake.is_holding_key:
-            self.update()
-            snake.len_queue += 1 + int(self.is_special)
+            snake.is_holding_key = False
+            snake.len_queue += 1
+            if self.is_special:
+                snake.len_queue += 1
+                global speed_movement
+                speed_movement -= accel
+                self.is_special = False
+            self.update(snake)
             return 1
         return -1
 
     def free_coords(self, snake, space):
         cur_space = space.copy()
+        """list.remove(x): x not in list"""
         for body in snake.body:
             cur_space.remove(body.rect.topleft)
+
+        if snake.prev_tail in cur_space:
+            cur_space.remove(snake.prev_tail)
+
         plus_coords = (snake.body.sprites()[0].rect.topleft[0] + snake.cur_direction[0] * len_cell,
                        snake.body.sprites()[0].rect.topleft[1] + snake.cur_direction[1] * len_cell)
         if plus_coords in cur_space:
@@ -127,30 +151,30 @@ class Fruit(pg.sprite.Sprite):
             # issue: 46
         return cur_space
 
-    # def update(self, snake):
-    #     """
-    #     В этом update фрукт будет менять своё положение +, при необходимости, создавать ключ
-    #
-    #     """
-    #     # if Snake.head.pos == (self.x, self.y): # Просто сравнение
-    #     if is_collided_by_snake:
-    #         if (self.is_special and Snake.is_holding_key) or not self.is_special:
-    #             Snake.queue_len += 1 + int(self.is_special)
-    #             if not Snake.is_growing:
-    #                 Snake.start_grow()  # Метод роста с сохранением
-    #         elif self.is_special and not Snake.is_holding_key:
-    #             Game_modules.gameover
+    def update(self, snake):
+        """
+        В этом update фрукт будет менять своё положение + при необходимости, создавать ключ
 
+        """
+        self.counter_fruit = (self.counter_fruit + 1) % fruit_step
+        self.is_special = self.counter_fruit == 0
 
-"""
-Будет хранить в себе блоки головы, тела и хвоста.
-Каждый блок будет вектором (pg.Vector2)
+        cur_space = self.free_coords(snake, self.empty_space)
 
-Блок тела будет отрисовываться относительно положения следующего блока и предыдущего
-(в крайнем случае — относительно головы и хвоста)
+        coords = self.empty_space[random.randint(0, len(cur_space) - 1)]
 
-Или же можно сделать хвост частью тела
-"""
+        if not self.is_special:
+            self.image = tile_images['apple']
+            self.rect = self.image.get_rect()
+
+        elif self.is_special:
+            self.image = tile_images['apple_cage']
+            self.rect = self.image.get_rect()
+            cur_space.remove(coords)
+            Key(cur_space, self.groups())
+
+        self.rect.topleft = coords
+
 
 """
 2. Как работать с анимациями в данной игре?
@@ -219,6 +243,8 @@ class Snake:
 
         self.len_queue = 0
         """Длина очереди на рост"""
+        self.prev_tail = tuple[int, int]
+        """координаты старого хвоста"""
 
     def add_block(self):
         """
@@ -285,6 +311,7 @@ class Snake:
                 continue
             elif index == len(self.body) - 1:
                 # Хвост
+                self.prev_tail = block.rect.topleft
                 pbd = self.body.sprites()[index - 1].dir
                 block.update(*prev_pos, pbd, tail_images[pbd])
                 continue
@@ -361,7 +388,7 @@ class Snake:
 
 
 class Game:
-    def __init__(self, screen: pg.Surface, empty_space, walls, head_snake, tail_snake, exit_pos, level):
+    def __init__(self, screen: pg.Surface, empty_space, walls, head_snake, tail_snake, exit_pos):
         """
 
         :param screen: Экран.
@@ -372,7 +399,6 @@ class Game:
         :param exit_pos: Координаты точки, врезавшись в стену рядом с которой уровень закончится. (НА БУДУЩЕЕ)
 
         """
-        self.level = level
         self.exit_pos = exit_pos
         self.screen = screen
         self.empty_space = empty_space
@@ -424,6 +450,7 @@ class Game:
                         utility.menu.menu_index = 2
                         break
                     self.draw_level()
+                    pg.time.set_timer(move_snake_event, speed_movement)  # Обновление скорости змеи
                 if event.type == pg.KEYDOWN:
                     # Попытка обновления направления змеи
                     # pg.event.post(gameover_ev)
