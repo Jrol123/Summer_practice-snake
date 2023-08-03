@@ -118,8 +118,11 @@ class Fruit(pg.sprite.Sprite):
     def free_coords(self, snake, space):
         cur_space = space.copy()
         for body in snake.body:
-            if body.rect.topleft in cur_space:
-                cur_space.remove(body.rect.topleft)
+            cur_space.remove(body.rect.topleft)
+        plus_coords = (snake.body.sprites()[0].rect.topleft[0] + snake.cur_direction[0] * len_cell,
+                       snake.body.sprites()[0].rect.topleft[1] + snake.cur_direction[1] * len_cell)
+        if plus_coords in cur_space:
+            cur_space.remove(plus_coords)
         return cur_space
 
     # def update(self, snake):
