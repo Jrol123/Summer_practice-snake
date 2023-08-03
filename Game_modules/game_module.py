@@ -123,6 +123,8 @@ class Fruit(pg.sprite.Sprite):
                        snake.body.sprites()[0].rect.topleft[1] + snake.cur_direction[1] * len_cell)
         if plus_coords in cur_space:
             cur_space.remove(plus_coords)
+            """Реализовать убирание возможных координат добавления фрукта перед змеёй"""
+            # issue: 46
         return cur_space
 
     # def update(self, snake):
