@@ -312,7 +312,7 @@ class Snake:
 
         # Коллизия со внешними стенами
         if (0 > future_head_coords[0] or 0 > future_head_coords[1] or
-                len_side_screen < future_head_coords[0] or len_side_screen < future_head_coords[1]):
+                len_side_screen <= future_head_coords[0] or len_side_screen <= future_head_coords[1]):
             return -1
 
         # Коллизия со внутренними стенами
