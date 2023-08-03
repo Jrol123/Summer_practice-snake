@@ -69,4 +69,3 @@ class Board:
                 x, y = coord
                 color = colors[(index_side + index_cell) % 2]
                 pg.draw.rect(screen, color, (x, y, self.cell_len, self.cell_len), 0)
-                # Последний аргумент отвечает за заполнение.

@@ -1,5 +1,5 @@
 """
-Здесь будут содержаться коды ко всем меню (см. Milestone Механики)
+Здесь будут содержаться коды ко всем меню.
 """
 import configparser
 
@@ -9,14 +9,33 @@ import pygame as pg
 from utility.field import Board
 
 menu_index = 0
+"""
+Глобальная переменная, отвечающая за номер экрана, который нужно отобразить.
+
+-1 означает выход из программы.
+"""
 color1, color2 = pg.color.Color(130, 255, 127), pg.color.Color(96, 186, 93)
 color1.hsva = (119, 55, 100, 100)
 color2.hsva = (118, 55, 73, 100)
 
-standart_colors = (color1, color2)
+menu_colors = (color1, color2)
+"""Цвета для заднего фона меню."""
 
 
-def load_image(name, resize_ch=1):
+def load_image(name: str, resize_ch: int = 1) -> pg.Surface:
+    """
+    Функция загрузки изображений.
+
+    Изображения должны храниться в папке textures и иметь формат png.
+
+    :param name: Имя изображения.
+    :type name: str
+    :param resize_ch: Во сколько раз нужно увеличить изображение.
+    :type resize_ch: int
+    :return: Картинка, с нужным размером.
+    :rtype: pg.Surface
+
+    """
     fullname = os.path.join('textures', name + ".png")
     try:
         image = pg.image.load(fullname)
@@ -32,6 +51,21 @@ def load_image(name, resize_ch=1):
 
 
 class Button(pygame.sprite.Sprite):
+    """
+    Класс кнопки.
+
+    Используется для перехода по меню.
+
+    :ivar image: Картинка кнопки.
+    :type image: pygame.Surface
+    :ivar rect: Прямоугольник картинки.
+    :type rect: pygame.Rect
+    :ivar level: Номер экрана, на который нужно перейти.
+    :type level: int
+    :ivar is_game_level: Является ли level — номером уровня.
+    :type is_game_level: bool
+
+    """
     def __init__(self, x: int, y: int, image: pygame.Surface, level: int, *group: pygame.sprite.Group,
                  is_game_level: bool = False):
         super().__init__(*group)
@@ -46,17 +80,45 @@ class Button(pygame.sprite.Sprite):
 
         self.rect.topleft = (x, y)
 
-    def update(self, mouse_pos) -> None:
+    def update(self, mouse_pos: tuple[int, int]) -> None:
+        """
+        Проверка на коллизию позиции мыши с кнопкой.
+
+        Если коллизия есть, вызывается set_level.
+
+        :param mouse_pos: Координаты мыши
+
+        """
         if self.rect.collidepoint(mouse_pos):
             self.set_level()
 
     def set_level(self):
+        """
+        Установка нужного экрана.
+
+        Вызывается из update.
+
+        """
         global menu_index
         menu_index = self.level + int(self.is_game_level) * 3
 
 
 def background_render(screen: pygame.Surface, len_side_screen: int, count_cells: int,
-                      colors=((79, 255, 77), (60, 191, 57))) -> None:
+                      colors: tuple[pygame.color.Color | tuple[int, int, int], pygame.color.Color | tuple[int, int, int]] = ((79, 255, 77), (60, 191, 57)))\
+        -> None:
+    """
+    Рендер заднего фона.
+
+    :param screen: Экран, на котором будут выведен фон.
+    :type screen: pygame.Surface
+    :param len_side_screen: Длина экрана.
+    :type len_side_screen: int
+    :param count_cells: Количество ячеек.
+    :type count_cells: int
+    :param colors: Цвета, которыми будет рисоваться фон.
+    :type colors: tuple[pygame.color.Color | tuple[int, int, int], pygame.color.Color | tuple[int, int, int]]
+
+    """
     bgrd = Board(len_side_screen, count_cells)
     bgrd.draw(screen, colors)
 
@@ -64,6 +126,13 @@ def background_render(screen: pygame.Surface, len_side_screen: int, count_cells:
 def start_screen(screen: pygame.Surface, len_side_screen: int, count_cells: int) -> None:
     """
     Начальный экран.
+
+    :param screen: Экран, на котором будут выведен фон.
+    :type screen: pygame.Surface
+    :param len_side_screen: Длина экрана.
+    :type len_side_screen: int
+    :param count_cells: Количество ячеек.
+    :type count_cells: int
 
     """
     background_render(screen, len_side_screen, count_cells)
@@ -87,17 +156,35 @@ def level_screen(screen: pygame.Surface, len_side_screen: int, count_cells: int)
     """
     Экран выбора уровней
 
-    :param screen:
-    :param len_side_screen:
-    :param count_cells:
+    :param screen: Экран, на котором будут выведен фон.
+    :type screen: pygame.Surface
+    :param len_side_screen: Длина экрана.
+    :type len_side_screen: int
+    :param count_cells: Количество ячеек.
+    :type count_cells: int
 
     """
-    background_render(screen, len_side_screen, count_cells, standart_colors)
+    background_render(screen, len_side_screen, count_cells, menu_colors)
     level_screen_buttons.draw(screen)
 
 
 def gameover_screen(screen: pygame.Surface, level: int, len_side_screen: int, count_cells: int, len_snake: int) -> None:
-    background_render(screen, len_side_screen, count_cells, standart_colors)
+    """
+    Экран проигрыша.
+
+    :param screen: Экран, на котором будут выведен фон.
+    :type screen: pygame.Surface
+    :param len_side_screen: Длина экрана.
+    :type len_side_screen: int
+    :param count_cells: Количество ячеек.
+    :type count_cells: int
+    :param level: Номер уровня, на котором проиграл пользователь.
+    :type level: int
+    :param len_snake: Длина змеи, перед проигрышем.
+    :type len_snake: int
+
+    """
+    background_render(screen, len_side_screen, count_cells, menu_colors)
     gameover_screen_buttons.draw(screen)
     text = ["GAME OVER",
             f"You died on level: {level}",
@@ -112,7 +199,6 @@ def gameover_screen(screen: pygame.Surface, level: int, len_side_screen: int, co
         intro_rect.x = len_side_screen // 2 - string_rendered.get_size()[0] // 2
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
-    """Для кнопки restart можно просто передавать значение через аргумент"""
 
 
 config = configparser.ConfigParser()

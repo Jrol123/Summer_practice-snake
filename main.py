@@ -1,11 +1,10 @@
 """
-Главное пространство для запуска
+Главное пространство для запуска игры.
 """
 import os
 import pygame as pg
 
 import utility.menu
-from utility.field import Board
 from utility.menu import start_screen, level_screen, gameover_screen
 from utility.level_system import start_level
 import utility.menu
@@ -28,6 +27,7 @@ len_snake = 0  # Пользователю будет показан 0
 last_level = -1
 
 while running:
+    """Цикл меню"""
     pos = pg.mouse.get_pos()
     for event in pg.event.get():
         if event.type == pg.QUIT or utility.menu.menu_index == -1:
@@ -55,14 +55,3 @@ while running:
                     pg.event.post(pg.event.Event(pg.MOUSEBUTTONDOWN))  # Да, костыль. Но ведь работает!
 
     pg.display.flip()
-
-"""
-Рандомную генерацию фруктов можно проводить следующим образом:
-1. Сохранять индексы свободных ячеек в отдельный массив.
-2. Брать одну / две ячейки на фрукт / фрукт + ключ.
-3. Вставлять их.
-"""
-
-"""
-Стены будут запекаться сразу в ActiveBoard
-"""
