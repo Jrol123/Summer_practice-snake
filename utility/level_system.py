@@ -7,9 +7,6 @@ import configparser
 import pygame as pg
 
 import Game_modules.game_module
-import utility
-from Game_modules import game_module
-from utility.menu import load_image
 
 config = configparser.ConfigParser()
 config.read('config.cfg')
@@ -19,6 +16,17 @@ cell_len = len_side_screen // count_cells
 
 
 def load_level(filename: str) -> list[list[str]]:
+    """
+    Функция считывания уровня.
+
+    Файл должен находится в папке levels и иметь название, по типу level_n.txt.
+
+    :param filename: Название считываемого файла.
+    :type filename: str
+    :return: Двумерный массив карты уровня.
+    :rtype: list[list[str]]
+
+    """
     filename = "levels/level_" + filename + ".txt"
     # читаем уровень, убирая символы перевода строки
     with open(filename, 'r') as mapFile:
@@ -39,14 +47,18 @@ def load_level(filename: str) -> list[list[str]]:
     return level_map
 
 
-"""
-Как правильно загружать уровни?
-Если игрок захочет переключиться между уровнями придётся тогда очищать списки?
-Или же делать абстрактный класс игра, в котором будут инициализироваться объекты по спискам
-"""
+def start_level(screen: pg.Surface, level: int) -> int:
+    """
+    Функция начала уровня.
 
+    :param screen: Экран, на котором будет происходить отображение уровня.
+    :type screen: pg.Surface
+    :param level: Номер уровня
+    :type level: int
+    :return: Номер уровня. #issue 53
+    :rtype: int
 
-def start_level(screen, level) -> int:
+    """
     empty_space = []
     walls_pos = []
     head_snake = ()
