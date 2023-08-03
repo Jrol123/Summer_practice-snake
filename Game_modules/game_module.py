@@ -228,7 +228,7 @@ class Snake:
 
         """
         SnakeBody(0, 0,
-                  tail_images[(1, 0)], None, self.body)
+                  tail_images[(1, 0)], (0, 0), self.body)
 
     def draw_head(self):
         image = self.image_head()
@@ -348,7 +348,10 @@ class Snake:
         :return: Получилось ли изменить направление
 
         """
-        if self.body_direction[0] == -direction[0] and self.body_direction[1] == direction[1] or \
+        if self.body_direction == direction:
+            self.cur_direction = direction
+            return True
+        elif self.body_direction[0] == -direction[0] and self.body_direction[1] == direction[1] or \
                 self.body_direction[1] == -direction[1] and self.body_direction[0] == direction[0]:
             return False
         self.cur_direction = direction
