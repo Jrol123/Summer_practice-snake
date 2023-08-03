@@ -23,10 +23,18 @@ def load_level(filename: str) -> list[list[str]]:
     # читаем уровень, убирая символы перевода строки
     with open(filename, 'r') as mapFile:
         level_map = []
-        for j, line in enumerate(mapFile):
+        for j in range(count_cells):
+            line = mapFile.readline()
+            line = line.replace('\n', '')
             level_map.append([])
-            for i in range(15):
-                level_map[j].append(line[i])
+            for sym in line:
+                level_map[j].append(sym)
+
+        speed, fruit_step, accel = map(int, mapFile.readline().split())
+
+        Game_modules.game_module.speed_movement = speed
+        Game_modules.game_module.fruit_step = fruit_step
+        Game_modules.game_module.accel = accel
 
     return level_map
 
@@ -47,7 +55,8 @@ def start_level(screen, level) -> int:
 
     level_map = load_level(f'{level}')
 
-    for i, row in enumerate(level_map):
+    for i in range(count_cells):
+        row = level_map[i]
         for j, sym in enumerate(row):
             coord_cell = (cell_len * j, cell_len * i)
 
@@ -64,7 +73,8 @@ def start_level(screen, level) -> int:
                     empty_space.append(coord_cell)
                 case 'e':
                     exit_pos = coord_cell
-    game = Game_modules.game_module.Game(screen, empty_space, walls_pos, head_snake, tail_snake, exit_pos, level)
+
+    game = Game_modules.game_module.Game(screen, empty_space, walls_pos, head_snake, tail_snake, exit_pos)
     return game.game_loop()
     # Далее тут будет распознавание начального положения змеи из координат головы и хвоста.
 
