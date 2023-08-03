@@ -58,8 +58,10 @@ def start_level(screen, level) -> int:
                     walls_pos.append(coord_cell)
                 case 'Z':
                     head_snake = coord_cell
+                    empty_space.append(coord_cell)
                 case 'z':
                     tail_snake = coord_cell
+                    empty_space.append(coord_cell)
                 case 'e':
                     exit_pos = coord_cell
     game = Game_modules.game_module.Game(screen, empty_space, walls_pos, head_snake, tail_snake, exit_pos, level)

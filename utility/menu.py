@@ -94,6 +94,7 @@ def gameover_screen(screen: pygame.Surface, level: int, len_side_screen: int, co
     background_render(screen, len_side_screen, count_cells)
     gameover_screen_buttons.draw(screen)
     text = ["GAME OVER",
+            f"Youn died on level: {level}",
             f'length of a Snake: {len_snake}']
     font = pygame.font.Font(None, 100)
     text_coord = 50
