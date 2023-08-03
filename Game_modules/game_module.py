@@ -217,14 +217,6 @@ class Snake:
                   tail_images[head_dir[0], head_dir[1]],
                   head_dir, self.body)
 
-        self.prev_pos = (tail_pos[0] - 1, tail_pos[1] - 1)
-        """
-        Информация о предыдущей последней клетке для корректного отрисовывания хвоста
-        Хотя в теории это не нужно.
-        Можно ставить любой dir, в любом случае всё обновится.
-        """
-        self.prev_dir = head_dir
-
         self.len_queue = 0
         """Длина очереди на рост"""
 
@@ -235,8 +227,8 @@ class Snake:
         Хвост уходит назад
 
         """
-        SnakeBody(*self.prev_pos,
-                  tail_images[self.prev_dir], self.prev_dir, self.body)
+        SnakeBody(0, 0,
+                  tail_images[(1, 0)], None, self.body)
 
     def image_head(self) -> pg.Surface:
         return head_images[self.cur_direction[0], self.cur_direction[1]]
@@ -292,8 +284,6 @@ class Snake:
             elif index == len(self.body) - 1:
                 # Хвост
                 pbd = self.body.sprites()[index - 1].dir
-                self.prev_pos = block.rect.topleft
-                self.prev_dir = block.dir
                 block.update(*prev_block_pos, pbd, tail_images[pbd])
                 continue
 
