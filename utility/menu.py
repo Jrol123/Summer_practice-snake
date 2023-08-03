@@ -9,6 +9,11 @@ import pygame as pg
 from utility.field import Board
 
 menu_index = 0
+color1, color2 = pg.color.Color(130, 255, 127), pg.color.Color(96, 186, 93)
+color1.hsva = (119, 55, 100, 100)
+color2.hsva = (118, 55, 73, 100)
+
+standart_colors = (color1, color2)
 
 
 def load_image(name, resize_ch=1):
@@ -50,9 +55,10 @@ class Button(pygame.sprite.Sprite):
         menu_index = self.level + int(self.is_game_level) * 3
 
 
-def background_render(screen: pygame.Surface, len_side_screen: int, count_cells: int) -> None:
+def background_render(screen: pygame.Surface, len_side_screen: int, count_cells: int,
+                      colors=((79, 255, 77), (60, 191, 57))) -> None:
     bgrd = Board(len_side_screen, count_cells)
-    bgrd.draw(screen)
+    bgrd.draw(screen, colors)
 
 
 def start_screen(screen: pygame.Surface, len_side_screen: int, count_cells: int) -> None:
@@ -86,22 +92,22 @@ def level_screen(screen: pygame.Surface, len_side_screen: int, count_cells: int)
     :param count_cells:
 
     """
-    background_render(screen, len_side_screen, count_cells)
+    background_render(screen, len_side_screen, count_cells, standart_colors)
     level_screen_buttons.draw(screen)
 
 
 def gameover_screen(screen: pygame.Surface, level: int, len_side_screen: int, count_cells: int, len_snake: int) -> None:
-    background_render(screen, len_side_screen, count_cells)
+    background_render(screen, len_side_screen, count_cells, standart_colors)
     gameover_screen_buttons.draw(screen)
     text = ["GAME OVER",
-            f"Youn died on level: {level}",
+            f"You died on level: {level}",
             f'length of a Snake: {len_snake}']
     font = pygame.font.Font(None, 100)
-    text_coord = 50
+    text_coord = 35
     for line in text:
         string_rendered = font.render(line, 1, pygame.Color('black'))
         intro_rect = string_rendered.get_rect()
-        text_coord += 20
+        text_coord += 25
         intro_rect.top = text_coord
         intro_rect.x = len_side_screen // 2 - string_rendered.get_size()[0] // 2
         text_coord += intro_rect.height
