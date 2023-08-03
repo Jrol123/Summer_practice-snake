@@ -13,6 +13,7 @@ config = configparser.ConfigParser()
 config.read('config.cfg')
 len_side_screen = int(config['screen']['len_side'])
 count_cells = int(config['screen']['count_cells'])
+
 speed_movement = 500
 """Скорость такта передвижения змеи"""
 fruit_step = 6
@@ -25,6 +26,7 @@ tile_images = {
     'wall': utility.menu.load_image('wall-block(r)', 2),
     'apple': utility.menu.load_image('apple', 1.6),
     'apple_cage': utility.menu.load_image('apple_cage', 1.6),
+    'golden_apple': utility.menu.load_image('golden_apple', 1.6),
     'key': utility.menu.load_image('key', 2)
 }
 """Изображения предметов"""
@@ -119,7 +121,7 @@ class Key(pg.sprite.Sprite):
 
         """
         snake.is_holding_key = True
-        self.groups()[0].sprites()[0].image = tile_images['apple']
+        self.groups()[0].sprites()[0].image = tile_images['golden_apple']
         self.groups()[0].remove(self)
         del self
         return 1
