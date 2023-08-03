@@ -31,10 +31,18 @@ tile_images = {
 }
 """Изображения предметов"""
 head_images = {
-    (1, 0): utility.menu.load_image('head_right', 1.6),
-    (-1, 0): utility.menu.load_image('head_left', 1.6),
-    (0, -1): utility.menu.load_image('head_up', 1.6),
-    (0, 1): utility.menu.load_image('head_down', 1.6)
+    ((1, 0), (1, 0)): utility.menu.load_image('head_right', 1.6),
+    ((-1, 0), (-1, 0)): utility.menu.load_image('head_left', 1.6),
+    ((0, -1), (0, -1)): utility.menu.load_image('head_up', 1.6),
+    ((0, 1), (0, 1)): utility.menu.load_image('head_down', 1.6),
+    ((-1, 0), (0, -1)): utility.menu.load_image('head_lu', 1.6),
+    ((-1, 0), (0, 1)): utility.menu.load_image('head_ld', 1.6),
+    ((1, 0), (0, -1)): utility.menu.load_image('head_ru', 1.6),
+    ((1, 0), (0, 1)): utility.menu.load_image('head_rd', 1.6),
+    ((0, -1), (1, 0)): utility.menu.load_image('head_ur', 1.6),
+    ((0, -1), (-1, 0)): utility.menu.load_image('head_ul', 1.6),
+    ((0, 1), (-1, 0)): utility.menu.load_image('head_dl', 1.6),
+    ((0, 1), (1, 0)): utility.menu.load_image('head_dr', 1.6)
 }
 """Изображения головы"""
 # issue #50
@@ -302,7 +310,7 @@ class Snake:
 
         self.body = pg.sprite.Group()
         SnakeBody(*head_pos,
-                  head_images[head_dir],
+                  head_images[head_dir, head_dir],
                   head_dir, self.body)
         SnakeBody(*tail_pos,
                   tail_images[head_dir[0], head_dir[1]],
@@ -340,7 +348,7 @@ class Snake:
         :rtype: pg.Surface
 
         """
-        return head_images[self.cur_direction[0], self.cur_direction[1]]
+        return head_images[self.body_direction, self.cur_direction]
 
     def draw(self, screen: pg.Surface):
         """
