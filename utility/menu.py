@@ -221,6 +221,10 @@ level_1_button = Button(len_side_screen // 2 - (len_side_screen // 2) // 3 * 2, 
                         load_image("1", level_buttons_resize), 1, level_screen_buttons, is_game_level=True)
 level_2_button = Button(len_side_screen // 2 - (len_side_screen // 2) // 3 * 1, len_side_screen // 2,
                         load_image("2", level_buttons_resize), 2, level_screen_buttons, is_game_level=True)
+level_3_button = Button(len_side_screen // 2 - (len_side_screen // 2) // 3 * 0, len_side_screen // 2,
+                        load_image("3", level_buttons_resize), 3, level_screen_buttons, is_game_level=True)
+level_4_button = Button(len_side_screen // 2 - (len_side_screen // 2) // 3 * -1, len_side_screen // 2,
+                        load_image("4", level_buttons_resize), 4, level_screen_buttons, is_game_level=True)
 back_button = Button(len_side_screen // 2, len_side_screen // 2 + ((len_side_screen // 2) // 3) * 2,
                      load_image("back", 7), 0, level_screen_buttons)
 
