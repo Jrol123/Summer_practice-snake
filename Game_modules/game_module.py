@@ -338,14 +338,16 @@ class Snake:
         # Пустое пространство
         return 0
 
-    def set_direction(self, direction) -> bool:
+    def set_direction(self, direction: tuple[int, int]) -> bool:
         """
         Установка направления движения змеи.
 
-        Если движение легально, то змея тут-же отрисовывается.
+        Если движение легально, то змея перерисовывается.
 
         :param direction: Пользовательское направление.
+        :type direction: tuple[int, int]
         :return: Получилось ли изменить направление
+        :rtype: bool
 
         """
         if self.body_direction == direction:
