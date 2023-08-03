@@ -426,7 +426,7 @@ class Game:
         self.snake = Snake(snake_dir, head_snake, tail_snake)
 
         self.item_group = pg.sprite.Group()
-        self.fruit = Fruit(1, self.snake, self.empty_space, self.item_group)
+        Fruit(1, self.snake, self.empty_space, self.item_group)
 
     def game_loop(self) -> int:
         move_snake_event = pg.USEREVENT + 1
