@@ -22,7 +22,7 @@ menu_colors = (color1, color2)
 """Цвета для заднего фона меню."""
 
 
-def load_image(name: str, resize_ch: int = 1) -> pg.Surface:
+def load_image(name: str, resize_ch: float = 1) -> pg.Surface:
     """
     Функция загрузки изображений.
 
@@ -31,7 +31,7 @@ def load_image(name: str, resize_ch: int = 1) -> pg.Surface:
     :param name: Имя изображения.
     :type name: str
     :param resize_ch: Во сколько раз нужно увеличить изображение.
-    :type resize_ch: int
+    :type resize_ch: float
     :return: Картинка, с нужным размером.
     :rtype: pg.Surface
 
