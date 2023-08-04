@@ -100,7 +100,10 @@ class Button(pygame.sprite.Sprite):
 
         """
         global menu_index
-        menu_index = self.level + int(self.is_game_level) * 3
+        menu_index = self.level
+        if self.is_game_level:
+            menu_index += 3
+        # menu_index = self.level + int(self.is_game_level) * 3
 
 
 def background_render(screen: pygame.Surface, len_side_screen: int, count_cells: int,

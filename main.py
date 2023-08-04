@@ -34,9 +34,8 @@ while running:
             running = False
             break
         if event.type == pg.MOUSEBUTTONDOWN:
-            if utility.menu.menu_index in range(0, 2 + 1):
-                utility.menu.list_groups_buttons[utility.menu.menu_index].update(pg.mouse.get_pos())
-
+            utility.menu.list_groups_buttons[utility.menu.menu_index].update(pg.mouse.get_pos())
+            if utility.menu.menu_index >= 0:
                 screen.fill('black')
                 if utility.menu.menu_index == 0:
                     pg.display.set_caption('Меню')
