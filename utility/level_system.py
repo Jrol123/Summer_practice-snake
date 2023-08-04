@@ -88,7 +88,6 @@ def start_level(screen: pg.Surface, level: int) -> int:
 
     game = Game_modules.game_module.Game(screen, empty_space, walls_pos, head_snake, tail_snake, exit_pos)
     return game.game_loop()
-    # Далее тут будет распознавание начального положения змеи из координат головы и хвоста.
 
 
 """
