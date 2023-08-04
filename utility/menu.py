@@ -106,9 +106,12 @@ class Button(pygame.sprite.Sprite):
         # menu_index = self.level + int(self.is_game_level) * 3
 
 
-def background_render(screen: pygame.Surface, len_side_screen: int, count_cells: int,
-                      colors: tuple[pygame.color.Color | tuple[int, int, int], pygame.color.Color | tuple[int, int, int]] = ((79, 255, 77), (60, 191, 57)))\
-        -> None:
+def background_render(screen: pygame.Surface,
+                      len_side_screen: int,
+                      count_cells: int,
+                      colors:
+                      tuple[pygame.color.Color | tuple[int, int, int], pygame.color.Color | tuple[int, int, int]]
+                      = ((79, 255, 77), (60, 191, 57))) -> None:
     """
     Рендер заднего фона.
 
