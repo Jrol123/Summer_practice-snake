@@ -577,6 +577,8 @@ class Game:
                     if state:
                         self.snake.draw_head()
                         self.draw_level()
+        if utility.menu.menu_index != -1:
+            utility.menu.menu_index = 2
         return len(self.snake.body) - 2
 
     def draw_level(self):

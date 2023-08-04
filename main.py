@@ -22,6 +22,7 @@ running = True
 
 pg.display.set_caption('Меню')
 start_screen(screen, len_side_screen, count_cells)
+GAMEOVER = pg.event.Event(pg.USEREVENT + 10)
 
 len_snake = 0  # Пользователю будет показан 0
 last_level = -1
@@ -33,7 +34,11 @@ while running:
         if event.type == pg.QUIT or utility.menu.menu_index == -1:
             running = False
             break
-        if event.type == pg.MOUSEBUTTONDOWN:
+        elif event.type == (pg.USEREVENT + 10):
+            utility.menu.menu_index = 2
+            pg.display.set_caption(f'Игра окончена!')
+            gameover_screen(screen, last_level, len_side_screen, count_cells, len_snake)
+        elif event.type == pg.MOUSEBUTTONDOWN:
             utility.menu.list_groups_buttons[utility.menu.menu_index].update(pg.mouse.get_pos())
             if utility.menu.menu_index >= 0:
                 screen.fill('black')
@@ -48,9 +53,10 @@ while running:
                     gameover_screen(screen, last_level, len_side_screen, count_cells, len_snake)
                 else:
                     pg.display.set_caption(f'Уровень {utility.menu.menu_index - 3}')
-                    last_level = utility.menu.menu_index - 3
+                    utility.menu.level_index = utility.menu.menu_index - 3
                     # menu_index >= 3
                     len_snake = start_level(screen, utility.menu.menu_index - 3)
-                    pg.event.post(pg.event.Event(pg.MOUSEBUTTONDOWN))  # Да, костыль. Но ведь работает!
+                    pg.event.post(GAMEOVER)
+                    # pg.event.post(pg.event.Event(pg.MOUSEBUTTONDOWN))  # Да, костыль. Но ведь работает!
 
     pg.display.flip()
