@@ -14,6 +14,10 @@ menu_index = 0
 
 -1 означает выход из программы.
 """
+level_index = -1
+"""
+Глобальная переменная, отвечающая за прошлый уровень.
+"""
 color1, color2 = pg.color.Color(130, 255, 127), pg.color.Color(96, 186, 93)
 color1.hsva = (119, 55, 100, 100)
 color2.hsva = (118, 55, 73, 100)
@@ -66,8 +70,9 @@ class Button(pygame.sprite.Sprite):
     :type is_game_level: bool
 
     """
+
     def __init__(self, x: int, y: int, image: pygame.Surface, level: int, *group: pygame.sprite.Group,
-                 is_game_level: bool = False):
+                 is_game_level: bool = False, is_restart_button: bool = False):
         super().__init__(*group)
 
         self.image = image
@@ -77,6 +82,7 @@ class Button(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.level = level
         self.is_game_level = is_game_level
+        self.is_restart_button = is_restart_button
 
         self.rect.topleft = (x, y)
 
@@ -100,12 +106,18 @@ class Button(pygame.sprite.Sprite):
 
         """
         global menu_index
+        if self.is_restart_button:
+            menu_index = level_index + int(self.is_game_level) * 3
+            return
         menu_index = self.level + int(self.is_game_level) * 3
 
 
-def background_render(screen: pygame.Surface, len_side_screen: int, count_cells: int,
-                      colors: tuple[pygame.color.Color | tuple[int, int, int], pygame.color.Color | tuple[int, int, int]] = ((79, 255, 77), (60, 191, 57)))\
-        -> None:
+def background_render(screen: pygame.Surface,
+                      len_side_screen: int,
+                      count_cells: int,
+                      colors:
+                      tuple[pygame.color.Color | tuple[int, int, int], pygame.color.Color | tuple[int, int, int]]
+                      = ((79, 255, 77), (60, 191, 57))) -> None:
     """
     Рендер заднего фона.
 
@@ -141,15 +153,21 @@ def start_screen(screen: pygame.Surface, len_side_screen: int, count_cells: int)
 
     intro_text = ["Snake 2.0"]
     font = pygame.font.Font(None, 100)
+    sub_font = pygame.font.Font(None, 100 + 5)
     text_coord = 50
     for line in intro_text:
         string_rendered = font.render(line, 1, pygame.Color('black'))
+        sub_string_rendered = sub_font.render(line, 1, pygame.Color('white'))
         intro_rect = string_rendered.get_rect()
+        sub_intro_rect = sub_string_rendered.get_rect()
         text_coord += 10
         intro_rect.top = text_coord
+        sub_intro_rect.top = text_coord
         intro_rect.x = len_side_screen // 2 - string_rendered.get_size()[0] // 2
+        sub_intro_rect.x = len_side_screen // 2 - sub_string_rendered.get_size()[0] // 2
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
+        screen.blit(sub_string_rendered, sub_intro_rect)
 
 
 def level_screen(screen: pygame.Surface, len_side_screen: int, count_cells: int) -> None:
@@ -187,18 +205,24 @@ def gameover_screen(screen: pygame.Surface, level: int, len_side_screen: int, co
     background_render(screen, len_side_screen, count_cells, menu_colors)
     gameover_screen_buttons.draw(screen)
     text = ["GAME OVER",
-            f"You died on level: {level}",
+            f"You died on level: {level_index}",
             f'length of a Snake: {len_snake}']
     font = pygame.font.Font(None, 100)
+    sub_font = pygame.font.Font(None, 100 + 4)
     text_coord = 35
     for line in text:
         string_rendered = font.render(line, 1, pygame.Color('black'))
+        sub_string_rendered = sub_font.render(line, 1, pygame.Color('white'))
         intro_rect = string_rendered.get_rect()
+        sub_intro_rect = sub_string_rendered.get_rect()
         text_coord += 25
         intro_rect.top = text_coord
+        sub_intro_rect.top = text_coord
         intro_rect.x = len_side_screen // 2 - string_rendered.get_size()[0] // 2
+        sub_intro_rect.x = len_side_screen // 2 - sub_string_rendered.get_size()[0] // 2
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
+        screen.blit(sub_string_rendered, sub_intro_rect)
 
 
 config = configparser.ConfigParser()
@@ -208,15 +232,16 @@ count_cells = int(config['screen']['count_cells'])
 
 level_buttons_resize = 3
 
-
 """Возможно, кнопки стоит перенести в функции"""
 start_screen_buttons = pg.sprite.Group()
-exit_button = Button(len_side_screen // 2, len_side_screen // 2 + ((len_side_screen // 2) // 3) * 2,
-                     load_image("end", 7), -1, start_screen_buttons)
+gameover_screen_buttons = pg.sprite.Group()
+level_screen_buttons = pg.sprite.Group()
+
 start_button = Button(len_side_screen // 2, len_side_screen // 2, load_image("start", 7), 1,
                       start_screen_buttons)
+exit_button = Button(len_side_screen // 2, len_side_screen // 2 + ((len_side_screen // 2) // 3) * 2,
+                     load_image("end", 7), -1, start_screen_buttons, gameover_screen_buttons)
 
-level_screen_buttons = pg.sprite.Group()
 level_1_button = Button(len_side_screen // 2 - (len_side_screen // 2) // 3 * 2, len_side_screen // 2,
                         load_image("1", level_buttons_resize), 1, level_screen_buttons, is_game_level=True)
 level_2_button = Button(len_side_screen // 2 - (len_side_screen // 2) // 3 * 1, len_side_screen // 2,
@@ -228,6 +253,12 @@ level_4_button = Button(len_side_screen // 2 - (len_side_screen // 2) // 3 * -1,
 back_button = Button(len_side_screen // 2, len_side_screen // 2 + ((len_side_screen // 2) // 3) * 2,
                      load_image("back", 7), 0, level_screen_buttons)
 
-gameover_screen_buttons = pg.sprite.Group()
+restart_button = Button(len_side_screen // 2 - ((len_side_screen // 2) // 3) * 1.5,
+                        len_side_screen // 2 + ((len_side_screen // 2) // 4),
+                        load_image("restart", 6), level_index, gameover_screen_buttons, is_game_level=True,
+                        is_restart_button=True)
+back_gm_button = Button(len_side_screen // 2 + ((len_side_screen // 2) // 3) * 1.5,
+                        len_side_screen // 2 + ((len_side_screen // 2) // 4),
+                        load_image("back", 6), 1, gameover_screen_buttons)
 
 list_groups_buttons = [start_screen_buttons, level_screen_buttons, gameover_screen_buttons]
